@@ -4,6 +4,8 @@
 edited: Paolo Baldini
 """
 
+from model.device.default import *
+from model.inspect import information_centrality
 from config_plot import *
 
 from view.plotting import draw_wires, draw_junctions, plot_0, plot_1, plot_2, plot_3, plot_4, plot_5
@@ -25,7 +27,7 @@ def plot(custom):
     fig, ax = plt.subplots()
     fig.set_size_inches(10,10)
 
-    custom()
+    custom(ax)
 
     plt.show()
 
@@ -40,8 +42,7 @@ def adj_matrix(wires_dict):
     Lx = wires_dict['length_x']
     Ly = wires_dict['length_y']
 
-def network():
-
+def network(ax, wires_dict):
     # Plot pretty pictures of what we just did
 
     ax.add_patch(Rectangle((0,0), Lx, Ly, color = (0.9,0.9,0.9), alpha = 0.77))     
@@ -56,7 +57,7 @@ def network():
     ax.set_title('Nanowires distribution')
     ax.grid()
 
-def network_graph(G):
+def network_graph(G, wires_dict, ax):
 
     # Plot pretty pictures of what we just did
     
@@ -72,15 +73,15 @@ def network_graph(G):
     ax.axis([-.1*Lx,1.1*Lx,-.1*Lx,1.1*Lx]) # add some space around the unit square
     ax.set_title('Nanowires distribution graph')
 
-    nx.draw_networkx(G,pos, node_color = 'r',node_size = 20, with_labels = True, Hold = True)
+    #todo nx.draw_networkx(G, pos, node_color = 'r',node_size = 20, with_labels = True, Hold = True)
     ax.grid()
 
-def network_graph_kamada_kawai(G):
+def network_graph_kamada_kawai(G, ax):
     ax.set_title('kamada_kawai')
     nx.draw_kamada_kawai(G, node_color = 'r',node_size = 20, with_labels = False)
     ax.grid()
 
-def degree_of_nodes(G):
+def degree_of_nodes(G, ax):
 
     degree_sequence = sorted([d for n, d in G.degree()], reverse = True)  # degree sequence
     # print "Degree sequence", degree_sequence
@@ -102,7 +103,7 @@ def degree_of_nodes(G):
 ##List of connected components for following graphs
 #list_connected_components = sorted(nx.connected_components(G),key = len, reverse = True)
 
-def network_5(G):
+def network_5(G, wires_dict, ax):
     
     pos = nx.get_node_attributes(G,'pos')
     Lx = wires_dict['length_x']
@@ -134,8 +135,12 @@ def network_5(G):
     nx.draw_networkx(G,pos, node_color = [G.nodes[u]['component_color'] for u in G.nodes()],node_size = 20, with_labels = False, Hold = True)
     ax.grid()
         
-def largest_connected_component():
-    
+def largest_connected_component(G, wires_dict, ax):
+    K = G.copy()
+    largest_cc = max(nx.connected_components(G), key = len)
+    removed_nodes = [n for n in G.nodes() if n not in largest_cc]
+    K.remove_nodes_from(removed_nodes)
+
     pos = nx.get_node_attributes(K,'pos')
     Lx = wires_dict['length_x']
     Ly = wires_dict['length_y']
@@ -148,10 +153,10 @@ def largest_connected_component():
     ax.axis([-.1*Lx,1.1*Lx,-.1*Lx,1.1*Lx]) # add some space around the unit square
     ax.set_title('Nanowires distribution graph')
 
-    nx.draw_networkx(K,pos, node_color = 'r',node_size = 20, with_labels = True, Hold = True)
+    # todo nx.draw_networkx(K,pos, node_color = 'r',node_size = 20, with_labels = True, Hold = True)
     ax.grid()
 
-def network_7(G):
+def network_7(G, wires_dict, ax):
     
     pos = nx.get_node_attributes(G,'pos')
     Lx = wires_dict['length_x']
@@ -165,6 +170,7 @@ def network_7(G):
     ax.axis([-.1*Lx,1.1*Lx,-.1*Lx,1.1*Lx]) # add some space around the unit square
     ax.set_title('Connected components')
 
+    list_connected_components = sorted(nx.connected_components(G),key=len, reverse=True)
     n = round(len(list_connected_components)/5)+1
     colors = ['lightgray','lightgray','lightgray','lightgray','lightgray']*n
     colors.insert(0,'b')
@@ -180,30 +186,28 @@ def network_7(G):
 
 
 
-    nx.draw_networkx(G,pos, node_color = [G.nodes[u]['component_color'] for u in G.nodes()],node_size = 20, with_labels = False, Hold = True)
+    # todo nx.draw_networkx(G,pos, node_color = [G.nodes[u]['component_color'] for u in G.nodes()],node_size = 20, with_labels = False, Hold = True)
     
     
     
-    nx.draw_networkx_nodes(G,pos,
-                    nodelist = [sourcenode],
-                    node_color = 'r',
-                    node_size = 300,
-                alpha = 0.5)
+    # todo nx.draw_networkx_nodes(G,pos,
+                #     nodelist = [sourcenode],
+                #     node_color = 'r',
+                #     node_size = 300,
+                # alpha = 0.5)
     
-    nx.draw_networkx_nodes(G,pos,
-                    nodelist = [groundnode],
-                    node_color = 'k',
-                    node_size = 300,
-                alpha = 0.5)
+    # todo nx.draw_networkx_nodes(G,pos,
+                #     nodelist = [groundnode],
+                #     node_color = 'k',
+                #     node_size = 300,
+                # alpha = 0.5)
 
-def conductance():
-
-    fig, ax1 = plt.subplots()
+def conductance(S, ax1):
 
     color = 'tab:red'
     ax1.set_xlabel('time (s)')
     ax1.set_ylabel('Input Voltage (V)', color = color)
-    ax1.plot(t_list, V_list, color = color)
+    ax1.plot([x for x in range(0, S.time)], V_list, color = color)
     ax1.tick_params(axis = 'y', labelcolor = color)
 
     ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
@@ -220,15 +224,10 @@ def conductance():
 
 ###############################################################################
 
-#%% PLOT VOLTAGE MAP
-timestamp_map = 0
+def voltage_distribution_map(S, wires_dict, ax):
+    timestamp_map = 0
 
-def voltage_distribution_map():
-
-    L = H_list[timestamp_map].copy()
-    
-    fig, ax = plt.subplots()
-    fig.set_size_inches(10,10)
+    L = S.H[timestamp_map].copy()
     
     pos = nx.get_node_attributes(L,'pos')
     Lx = wires_dict['length_x']
@@ -243,43 +242,35 @@ def voltage_distribution_map():
     ax.set_title('Nanowires distribution graph')
 
     
-    nx.draw_networkx(L, pos, 
-                node_size = 20,
-                node_color = [L.nodes[n]['V'] for n in L.nodes()],
-                cmap = plt.cm.plasma,   #viridis  #jet #Blues 
-                #edge_color = [L[u][v]['Y'] for u,v in L.edges()],
-                #width = 2, 
-                #edge_cmap = plt.cm.Reds, 
-                #edge_vmin = Y_min,
-                #edge_vmax = Y_max,
-                arrows = False,
-                with_labels = False,font_size = 6,
-                )
+    # todo nx.draw_networkx(L, pos, 
+                # node_size = 20,
+                # node_color = [L.nodes[n]['V'] for n in L.nodes()],
+                # cmap = plt.cm.plasma,   #viridis  #jet #Blues 
+                # #edge_color = [L[u][v]['Y'] for u,v in L.edges()],
+                # #width = 2, 
+                # #edge_cmap = plt.cm.Reds, 
+                # #edge_vmin = Y_min,
+                # #edge_vmax = Y_max,
+                # arrows = False,
+                # with_labels = False,font_size = 6,
+                # )
     
-    nx.draw_networkx_nodes(L,pos,
-                    nodelist = [mapping[sourcenode]],
-                    node_color = 'r',
-                    node_size = 300,
-                alpha = 0.5)
+    # todo nx.draw_networkx_nodes(L,pos,
+                #     nodelist = [mapping[sourcenode]],
+                #     node_color = 'r',
+                #     node_size = 300,
+                # alpha = 0.5)
     
-    nx.draw_networkx_nodes(L,pos,
-                    nodelist = [mapping[groundnode]],
-                    node_color = 'k',
-                    node_size = 300,
-                alpha = 0.5)
+    # todo nx.draw_networkx_nodes(L,pos,
+                #     nodelist = [mapping[groundnode]],
+                #     node_color = 'k',
+                #     node_size = 300,
+                # alpha = 0.5)
 
-    ##ax.grid()
-    plt.show()
+def conductance_map(S, wires_dict, ax):
+    timestamp_map = 0# todo 80
 
-#%% PLOT CONDUCTANCE MAP
-timestamp_map = 80
-
-def conductance_map():
-    
-    L = H_list[timestamp_map].copy()
-    
-    fig, ax = plt.subplots()
-    fig.set_size_inches(10,10)
+    L = S.H[timestamp_map].copy()
     
     pos = nx.get_node_attributes(L,'pos')
     Lx = wires_dict['length_x']
@@ -294,44 +285,34 @@ def conductance_map():
     ax.set_title('Nanowires distribution graph')
 
 
-    nx.draw_networkx(L, pos, 
-                node_size = 20,
-                node_color = [L.nodes[n]['V'] for n in L.nodes()],
-                cmap = plt.cm.Blues,
-                edge_color = [L[u][v]['Y'] for u,v in L.edges()],
-                width = 2, 
-                edge_cmap = plt.cm.Reds, 
-                edge_vmin = Y_min,
-                edge_vmax = Y_max,
-                arrows = False,
-                with_labels = False,font_size = 6,)
+    # todo nx.draw_networkx(L, pos, 
+                # node_size = 20,
+                # node_color = [L.nodes[n]['V'] for n in L.nodes()],
+                # cmap = plt.cm.Blues,
+                # edge_color = [L[u][v]['Y'] for u,v in L.edges()],
+                # width = 2, 
+                # edge_cmap = plt.cm.Reds, 
+                # edge_vmin = Y_min,
+                # edge_vmax = Y_max,
+                # arrows = False,
+                # with_labels = False,font_size = 6,)
     
-    nx.draw_networkx_nodes(L,pos,
-                    nodelist = [mapping[sourcenode]],
-                    node_color = 'r',
-                    node_size = 300,
-                alpha = 0.5)
+    # todo nx.draw_networkx_nodes(L,pos,
+                #     nodelist = [mapping[sourcenode]],
+                #     node_color = 'r',
+                #     node_size = 300,
+                # alpha = 0.5)
     
-    nx.draw_networkx_nodes(L,pos,
-                    nodelist = [mapping[groundnode]],
-                    node_color = 'k',
-                    node_size = 300,
-                alpha = 0.5)
+    # todo nx.draw_networkx_nodes(L,pos,
+                #     nodelist = [mapping[groundnode]],
+                #     node_color = 'k',
+                #     node_size = 300,
+                # alpha = 0.5)
 
-    ##ax.grid()
-    plt.show()
-
-
-
-#%% INFORMATION_CENTRALITY_MAP
-timestamp_map = 80
-
-def information_centrality_map():
+def information_centrality_map(S, wires_dict, ax):
+    timestamp_map = 0# todo 80
     
-    L = H_list[timestamp_map].copy()
-    
-    fig, ax = plt.subplots()
-    fig.set_size_inches(10,10)
+    L = S.H[timestamp_map].copy()
     
     pos = nx.get_node_attributes(L,'pos')
     Lx = wires_dict['length_x']
@@ -347,6 +328,8 @@ def information_centrality_map():
 
 
     #scaling information centrality to node sizes
+
+    Information_centrality_list = information_centrality(S.H)
     
     min_information_centrality = min([min(element) for element in Information_centrality_list])
     max_information_centrality = max([max(element) for element in Information_centrality_list])
@@ -365,35 +348,32 @@ def information_centrality_map():
     
     
     
-    nx.draw_networkx(L, pos, 
-                node_size = centrality_normalized,
-                node_color = [L.nodes[n]['information_centrality'] for n in L.nodes()],
-                cmap = plt.cm.cool,
-                edge_color = [L[u][v]['Y'] for u,v in L.edges()],
-                width = 2, 
-                edge_cmap = plt.cm.Reds, 
-                edge_vmin = Y_min,
-                edge_vmax = Y_max,
-                arrows = False,
-                with_labels = False,font_size = 6,)
+    # todo nx.draw_networkx(L, pos, 
+                # node_size = centrality_normalized,
+                # node_color = [L.nodes[n]['information_centrality'] for n in L.nodes()],
+                # cmap = plt.cm.cool,
+                # edge_color = [L[u][v]['Y'] for u,v in L.edges()],
+                # width = 2, 
+                # edge_cmap = plt.cm.Reds, 
+                # edge_vmin = Y_min,
+                # edge_vmax = Y_max,
+                # arrows = False,
+                # with_labels = False,font_size = 6,)
     
-    nx.draw_networkx_nodes(L,pos,
-                    nodelist = [mapping[sourcenode]],
-                    node_color = 'r',
-                    node_size = 300,
-                alpha = 0.5)
+    # todo nx.draw_networkx_nodes(L,pos,
+                #     nodelist = [mapping[sourcenode]],
+                #     node_color = 'r',
+                #     node_size = 300,
+                # alpha = 0.5)
     
-    nx.draw_networkx_nodes(L,pos,
-                    nodelist = [mapping[groundnode]],
-                    node_color = 'k',
-                    node_size = 300,
-                alpha = 0.5)
-
-    ##ax.grid()
-    plt.show()
+    # todo nx.draw_networkx_nodes(L,pos,
+                #     nodelist = [mapping[groundnode]],
+                #     node_color = 'k',
+                #     node_size = 300,
+                # alpha = 0.5)
 
 #%% ANIMATION 1 (draw_networkx function)
-def animation_1():
+def animation(ax):
 
     ### Parameters
 
@@ -412,21 +392,21 @@ def animation_1():
         pos = nx.get_node_attributes(H_list[i],'pos')
     
     
-        nx.draw_networkx(H_list[i], pos, 
-                        #NODES
-                        node_size = 60,
-                        node_color = [H_list[i].nodes[n]['V'] for n in H_list[i].nodes()],
-                        cmap = plt.cm.Blues,
-                        vmin = -5,
-                        vmax = 10,
-                        #EDGES
-                        width = 4,
-                        edge_color = [H_list[i][u][v]['Y'] for u,v in H_list[i].edges()],
-                        edge_cmap = plt.cm.Reds,
-                        edge_vmin = Y_min,
-                        edge_vmax = Y_max,
-                        with_labels = False,   #Set TRUE to see node numbers
-                        font_size = 6,)
+        # todo nx.draw_networkx(H_list[i], pos, 
+                        # #NODES
+                        # node_size = 60,
+                        # node_color = [H_list[i].nodes[n]['V'] for n in H_list[i].nodes()],
+                        # cmap = plt.cm.Blues,
+                        # vmin = -5,
+                        # vmax = 10,
+                        # #EDGES
+                        # width = 4,
+                        # edge_color = [H_list[i][u][v]['Y'] for u,v in H_list[i].edges()],
+                        # edge_cmap = plt.cm.Reds,
+                        # edge_vmin = Y_min,
+                        # edge_vmax = Y_max,
+                        # with_labels = False,   #Set TRUE to see node numbers
+                        # font_size = 6,)
     
         ax.set_title("t = {}".format(round(t_list[i], 1)))
     
