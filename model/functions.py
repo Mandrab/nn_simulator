@@ -20,8 +20,8 @@ import networkx as nx
 ####################    -    GRAPH DEFINITION     -    ########################
 def define_grid_graph(xdim, ydim):
 
-    Ggrid = grid_graph(dim=[xdim, ydim])
-    G = nx.convert_node_labels_to_integers(Ggrid, first_label=0, ordering='default', label_attribute='pos')
+    Ggrid = grid_graph(dim = [xdim, ydim])
+    G = nx.convert_node_labels_to_integers(Ggrid, first_label = 0, ordering = 'default', label_attribute = 'pos')
 
     return G
 
@@ -32,7 +32,7 @@ def define_grid_graph_2(xdim,ydim,groundnode_pos,sourcenode_pos):
 
     ##define a grid graph
 
-    Ggrid = grid_graph(dim=[xdim, ydim])
+    Ggrid = grid_graph(dim = [xdim, ydim])
     
     ##define random diagonals
     for x in range (xdim-1):
@@ -45,7 +45,7 @@ def define_grid_graph_2(xdim,ydim,groundnode_pos,sourcenode_pos):
             
 
     ##define a graph with integer nodes and positions of a grid graph
-    G=nx.convert_node_labels_to_integers(Ggrid, first_label=0, ordering='default', label_attribute='pos')
+    G = nx.convert_node_labels_to_integers(Ggrid, first_label = 0, ordering = 'default', label_attribute = 'pos')
 
 
 
@@ -56,17 +56,17 @@ def define_grid_graph_2(xdim,ydim,groundnode_pos,sourcenode_pos):
 def initialize_graph_attributes(G,Yin):
     #add the initial conductance
     for u,v in G.edges():
-        G[u][v]['Y']=Yin            #assign initial ammittance to all edges                                                         #assign initial high resistance state in all junctions
-        G[u][v]['R']=1/G[u][v]['Y']
-        G[u][v]['deltaV']=0
-        G[u][v]['g']=0
+        G[u][v]['Y'] = Yin            #assign initial admittance to all edges                                                         #assign initial high resistance state in all junctions
+        G[u][v]['R'] = 1/G[u][v]['Y']
+        G[u][v]['deltaV'] = 0
+        G[u][v]['g'] = 0
         
         
     ##initialize
     for n in G.nodes():
-        G.nodes[n]['pad']=False
-        G.nodes[n]['source_node']= False
-        G.nodes[n]['ground_node']= False
+        G.nodes[n]['pad'] = False
+        G.nodes[n]['source_node'] = False
+        G.nodes[n]['ground_node'] = False
         
     return G
 
@@ -83,10 +83,10 @@ def mod_voltage_node_analysis(G, Vin, sourcenode, groundnode):
     ## MODIFIED VOlTAGE NODE ANALYSIS
 
     # definition of matrices
-    matZ = np.zeros(shape=(G.number_of_nodes(), 1))
-    matG = np.zeros(shape=(G.number_of_nodes()-1, G.number_of_nodes()-1))
-    matB = np.zeros(shape=(G.number_of_nodes()-1, 1))
-    matD = np.zeros(shape=(1, 1))
+    matZ = np.zeros(shape = (G.number_of_nodes(), 1))
+    matG = np.zeros(shape = (G.number_of_nodes()-1, G.number_of_nodes()-1))
+    matB = np.zeros(shape = (G.number_of_nodes()-1, 1))
+    matD = np.zeros(shape = (1, 1))
 
     # filling Z matrix
     matZ[-1] = Vin
@@ -170,11 +170,11 @@ def calculate_network_resistance(H, sourcenode):
     
     I_fromsource = 0
     for u,v in H.edges(sourcenode):
-        a= H[u][v]['I']
-        I_fromsource=I_fromsource+a
+        a = H[u][v]['I']
+        I_fromsource = I_fromsource+a
 
     
-    Rnetwork=H.nodes[sourcenode]['V']/I_fromsource
+    Rnetwork = H.nodes[sourcenode]['V']/I_fromsource
     
     return Rnetwork
 
@@ -186,7 +186,7 @@ def calculate_network_resistance(H, sourcenode):
     
 def calculate_Vsource(H, sourcenode):
 
-    Vsource=H.nodes[sourcenode]['V']
+    Vsource = H.nodes[sourcenode]['V']
     
     return Vsource
 
@@ -200,10 +200,10 @@ def calculate_Vsource(H, sourcenode):
 
 def calculate_Isource(H, sourcenode):
     
-    I_from_source=0
+    I_from_source = 0
     for u,v in H.edges(sourcenode):
-        a= H[u][v]['I']
-        I_from_source=I_from_source+a
+        a = H[u][v]['I']
+        I_from_source = I_from_source+a
     
     return I_from_source
 
@@ -220,17 +220,17 @@ def update_edge_weigths(G,delta_t,Y_min, Y_max,kp0,eta_p,kd0,eta_d):
 
     for u,v in G.edges():
         
-        G[u][v]['deltaV']=abs(G.nodes[u]['V']-G.nodes[v]['V'])
+        G[u][v]['deltaV'] = abs(G.nodes[u]['V']-G.nodes[v]['V'])
     
-        G[u][v]['kp']= kp0*math.exp(eta_p*G[u][v]['deltaV'])
+        G[u][v]['kp'] = kp0*math.exp(eta_p*G[u][v]['deltaV'])
         
-        G[u][v]['kd']= kd0*math.exp(-eta_d*G[u][v]['deltaV'])
+        G[u][v]['kd'] = kd0*math.exp(-eta_d*G[u][v]['deltaV'])
         
-        G[u][v]['g']= (G[u][v]['kp']/(G[u][v]['kp']+G[u][v]['kd']))*(1-(1-(1+(G[u][v]['kd']/G[u][v]['kp'])*G[u][v]['g']))*math.exp(-(G[u][v]['kp']+G[u][v]['kd'])*delta_t))
+        G[u][v]['g'] = (G[u][v]['kp']/(G[u][v]['kp']+G[u][v]['kd']))*(1-(1-(1+(G[u][v]['kd']/G[u][v]['kp'])*G[u][v]['g']))*math.exp(-(G[u][v]['kp']+G[u][v]['kd'])*delta_t))
     
-        G[u][v]['Y']= Y_min*(1-G[u][v]['g'])+Y_max*G[u][v]['g']
+        G[u][v]['Y'] = Y_min*(1-G[u][v]['g'])+Y_max*G[u][v]['g']
         
-        G[u][v]['R']=1/G[u][v]['Y']
+        G[u][v]['R'] = 1/G[u][v]['Y']
     
     return G
 
