@@ -1,7 +1,8 @@
+import logging
 import networkx as nx
 
 # clustering coefficient list
-def clustering_nodes(G):
+def __clustering_nodes(G):
     a = nx.clustering(G)
     clustering = []
     for n in range(0, len(a)):
@@ -11,7 +12,7 @@ global_statistics = {
     'number of nodes': lambda G: G.number_of_nodes,
     'number of edges (junctions)': lambda G: G.number_of_edges,
     'degree of node': lambda G: [val for (node, val) in G.degree()],
-    'clustering of node': clustering_nodes,
+    'clustering of node': __clustering_nodes,
     'number of connected components':
         lambda G: nx.number_connected_components(G),
     'number of isolated nodes': lambda G: len([x for x in nx.isolates(G)]),
@@ -58,3 +59,16 @@ def inspect(G):
     for key in largest_component_statistics:
         print('The ' + key + ' is:')
         print(largest_component_statistics[key](K))
+
+
+# EXTRACTION OF INFORMATION CENTRALITY
+def information_centrality(Hs):
+    logging.debug('Evolution of information centrality')
+
+    Information_centrality_list = []
+
+    for H in Hs:
+        centrality = nx.get_node_attributes(H,'information_centrality')
+        Information_centrality_list.append(list(centrality.values()))
+
+    return Information_centrality_list
