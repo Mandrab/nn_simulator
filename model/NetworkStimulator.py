@@ -42,6 +42,10 @@ class NetworkStimulator():
 
         return M, mapping
 
+    @cache
+    def __information_centrality(self, M):
+        return nx.information_centrality(M, weight = 'Y')
+
     def stimulate(self, sourcenode, groundnode, v_in):
 
         assert nx.has_path(self.graph, sourcenode, groundnode), PATH_ERROR
@@ -64,7 +68,7 @@ class NetworkStimulator():
 
         nx.set_node_attributes(
             H,
-            nx.information_centrality(M, weight = 'Y'),
+            self.__information_centrality(M),
             "information_centrality"
         )
 
@@ -79,11 +83,11 @@ class NetworkStimulator():
         #         )
         # Ynetwork = 1/Rnetwork
 
-        Shortest_path_length_network = nx.shortest_path_length(
-            M,
-            source = mapping[sourcenode],
-            target = mapping[groundnode],
-            weight = 'R'
-        )
+        # Shortest_path_length_network = nx.shortest_path_length(
+        #     M,
+        #     source = mapping[sourcenode],
+        #     target = mapping[groundnode],
+        #     weight = 'R'
+        # )
 
         self.time += self.delta_time
