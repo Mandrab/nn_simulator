@@ -1,18 +1,11 @@
 from NWNetworkSimulator import *
 
+import logging
+
 ###############################################################################
 # NETWORK SETUP
 
-connections = NetworkUtils.generate(
-    nwires,
-    mean_length,
-    std_length,
-    centroid_dispersion,
-    seed,
-    Lx,
-    Ly
-)
-
+connections = NetworkUtils.generate(default)
 graph = NetworkUtils.get_graph(connections)
 
 ###############################################################################
@@ -32,14 +25,14 @@ v = 10                  # pulse amplitude of stimulation
 Vins = [0.01] + [v] * pulse_duration * pulse_count + [0.01] * reads
 
 # growth of the conductive path
-logging.info('Growth of the conductive path')
+logging.debug('Growth of the conductive path')
 
 # pristine state - create stimulator that initialize the state (todo ?)
-stimulator = NetworkStimulator(graph, Y_min)
+stimulator = NetworkStimulator(graph, device=default)
 
 # growth over time
 for i in range(0, int(timesteps)):
-    stimulator.stimulate(sourcenode, groundnode, Vins[i])
+    stimulator.stimulate(default.sourcenode, default.groundnode, Vins[i])
 
 information_centrality(stimulator.H)
 
@@ -47,4 +40,4 @@ information_centrality(stimulator.H)
 # PLOTTING
 
 #inspect(graph)
-plot.plot(lambda: plot.adj_matrix(connections))
+#plot.plot(lambda: plot.adj_matrix(connections))
