@@ -1,6 +1,7 @@
 from NWNetworkSimulator import *
 
 import logging
+import progressbar
 
 ###############################################################################
 # NETWORK SETUP
@@ -24,6 +25,9 @@ v = 10                  # pulse amplitude of stimulation
 # stimulate for 10 timesteps and then rest
 Vins = [0.01] + [v] * pulse_duration * pulse_count + [0.01] * reads
 
+# setup progressbar for print progress
+progressbar = progressbar.progressbar(range(timesteps), redirect_stdout=True)
+
 # growth of the conductive path
 logging.debug('Growth of the conductive path')
 
@@ -33,6 +37,7 @@ stimulator = NetworkStimulator(graph, device=default)
 # growth over time
 for i in range(0, int(timesteps)):
     stimulator.stimulate(default.sourcenode, default.groundnode, Vins[i])
+    next(progressbar)
 
 information_centrality(stimulator.H)
 
