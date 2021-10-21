@@ -11,4 +11,21 @@ from model.NetworkStimulator import NetworkStimulator
 
 # from view.view import plot_all
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s %(levelname)s]\t %(message)s')
+
+def enable_logging(
+        level=logging.INFO,
+        format='[%(asctime)s %(levelname)s]\t %(message)s'
+):
+    logging.basicConfig(level=level, format=format)
+
+
+enable_logging()
+
+__all__ = [
+    "logging",
+    "NetworkUtils",
+    "default",
+    "print_info", "inspect", "information_centrality",
+    "NetworkStimulator",
+    "enable_logging"
+]

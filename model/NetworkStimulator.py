@@ -3,18 +3,30 @@ from model.functions import *
 
 import logging
 import networkx as nx
+import progressbar
 
 PATH_ERROR = 'Source and ground node are NOT connected! Stimulation is not possible!'
 
+
 class NetworkStimulator():
+    __bar = progressbar.ProgressBar(max_value=progressbar.UnknownLength)
+    __counter = 0
+    __close_step = lambda: None
 
     time = 0
-    delta_time = 0.05
     H = []
 
-    def __init__(self, graph, min_admittance):
+    def __init__(self, graph, device, delta_time=0.05):
         self.graph = graph
-        self.min_admittance = min_admittance    # previously Y_min
+        self.device = device
+        self.delta_time = delta_time
+
+    def enable_progress_print(self):
+        self.__close_step = lambda: self.__bar.update(self.__counter)
+
+    @cache
+    def __is_stimulable(self, sourcenode, groundnode):
+        return nx.has_path(self.graph, sourcenode, groundnode)
 
     @cache
     def __connected_nodes(self, sourcenode, groundnode):
@@ -35,25 +47,32 @@ class NetworkStimulator():
         mapping = dict(zip(M, range(0, nodes_count)))
         M = nx.relabel_nodes(M, mapping)
 
-        M = initialize_graph_attributes(M, self.min_admittance)
+        M = initialize_graph_attributes(M, self.device.Y_min)
 
         M.nodes[mapping[sourcenode]]['source_node'] = True
         M.nodes[mapping[groundnode]]['ground_node'] = True
 
         return M, mapping
 
-    @cache
-    def __information_centrality(self, M):
-        return nx.information_centrality(M, weight = 'Y')
-
     def stimulate(self, sourcenode, groundnode, v_in):
 
-        assert nx.has_path(self.graph, sourcenode, groundnode), PATH_ERROR
+        # source and ground have to be connected (cached operation)
+        if not self.__is_stimulable(sourcenode, groundnode):
+            return logging.error(PATH_ERROR)
 
-        # retrieve connected nodes (cached)
+        # retrieve connected nodes (cached operation)
         M, mapping = self.__connected_nodes(sourcenode, groundnode)
 
         logging.debug(f'Electrical stimulation of the network. Virtual time: %.2f' % self.time)
+
+        # update weight of the edges. ignore at first round
+        if self.time >= self.delta_time: update_edge_weigths(
+            M,
+            self.delta_time,
+            self.device.Y_min, self.device.Y_max,
+            self.device.kp0, self.device.eta_p,
+            self.device.kd0, self.device.eta_d
+        )
 
         H = mod_voltage_node_analysis(
             M,
@@ -63,15 +82,18 @@ class NetworkStimulator():
         )
         self.H.append(H)
 
-        I = calculate_Isource(H, mapping[sourcenode])
-        V = calculate_Vsource(H, mapping[sourcenode])
+        # todo for plotting
+        # I = calculate_Isource(H, mapping[sourcenode])
+        # V = calculate_Vsource(H, mapping[sourcenode])
 
-        nx.set_node_attributes(
-            H,
-            self.__information_centrality(M),
-            "information_centrality"
-        )
+        # todo for plotting
+        # nx.set_node_attributes(
+        #     H,
+        nx.information_centrality(M, weight='Y'),
+        #     "information_centrality"
+        # )
 
+        # todo for plotting
         # Rnetwork = calculate_network_resistance(H, mapping[sourcenode]) \
         #     if time == 0 else \
         #         nx.resistance_distance(
@@ -90,4 +112,6 @@ class NetworkStimulator():
         #     weight = 'R'
         # )
 
+        self.__close_step()
+        self.__counter += 1
         self.time += self.delta_time
