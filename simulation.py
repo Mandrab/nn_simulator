@@ -35,7 +35,7 @@ logging.debug('Growth of the conductive path')
 stimulator = NetworkStimulator(graph, device=default)
 
 # growth over time
-for i in range(0, int(timesteps)):
+for i in range(int(timesteps) + 1):
     stimulator.stimulate(default.sourcenode, default.groundnode, Vins[i])
     next(progressbar)
 
