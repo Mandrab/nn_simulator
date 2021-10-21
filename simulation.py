@@ -5,7 +5,7 @@ import progressbar
 ###############################################################################
 # NETWORK SETUP
 
-connections = NetworkUtils.generate(default)
+connections = NetworkUtils.generate(device=default)
 graph = NetworkUtils.get_graph(connections)
 
 ###############################################################################
@@ -25,7 +25,7 @@ v = 10                  # pulse amplitude of stimulation
 Vins = [0.01] + [v] * pulse_duration * pulse_count + [0.01] * reads
 
 # setup progressbar for print progress
-progressbar = progressbar.progressbar(range(timesteps), redirect_stdout=True)
+progressbar = progressbar.progressbar(range(timesteps))
 
 # growth of the conductive path
 logging.debug('Growth of the conductive path')
@@ -34,7 +34,7 @@ logging.debug('Growth of the conductive path')
 stimulator = NetworkStimulator(graph, device=default)
 
 # growth over time
-for i in range(int(timesteps)):
+for i in range(timesteps):
     stimulator.stimulate(default.sourcenode, default.groundnode, Vins[i])
     next(progressbar)
 

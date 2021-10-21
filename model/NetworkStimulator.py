@@ -11,7 +11,7 @@ PATH_ERROR = 'Source and ground node are NOT connected! Stimulation is not possi
 class NetworkStimulator():
     __bar = progressbar.ProgressBar(max_value=progressbar.UnknownLength)
     __counter = 0
-    __close_step = lambda: None
+    __close_step = lambda _: None
 
     time = 0
     H = []
@@ -112,6 +112,6 @@ class NetworkStimulator():
         #     weight = 'R'
         # )
 
-        self.__close_step()
         self.__counter += 1
+        self.__close_step()
         self.time += self.delta_time
