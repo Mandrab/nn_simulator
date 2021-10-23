@@ -20,6 +20,13 @@ class NetworkStimulator():
         self.graph = graph
         self.device = device
         self.delta_time = delta_time
+        self.M, self.mapping = self.__connected_nodes(
+            device.sourcenode,
+            device.groundnode
+        )   # retrieve connected nodes (cached operation)
+        self.update_edge_weigths = lambda *_: None
+        self.stimulate(device.sourcenode, device.groundnode, 0.01)  # first stimulation is an initialization
+        self.update_edge_weigths = update_edge_weigths
 
     def enable_progress_print(self):
         self.__close_step = lambda: self.__bar.update(self.__counter)
@@ -60,14 +67,11 @@ class NetworkStimulator():
         if not self.__is_stimulable(sourcenode, groundnode):
             return logging.error(PATH_ERROR)
 
-        # retrieve connected nodes (cached operation)
-        M, mapping = self.__connected_nodes(sourcenode, groundnode)
-
         logging.debug(f'Electrical stimulation of the network. Virtual time: %.2f' % self.time)
 
         # update weight of the edges. ignore at first round
-        if self.time >= self.delta_time: update_edge_weigths(
-            M,
+        self.update_edge_weigths(
+            self.M,
             self.delta_time,
             self.device.Y_min, self.device.Y_max,
             self.device.kp0, self.device.eta_p,
@@ -75,40 +79,40 @@ class NetworkStimulator():
         )
 
         H = mod_voltage_node_analysis(
-            M,
+            self.M,
             v_in,
-            mapping[sourcenode],
-            mapping[groundnode]
+            self.mapping[sourcenode],
+            self.mapping[groundnode]
         )
         self.H.append(H)
 
         # todo for plotting
-        # I = calculate_Isource(H, mapping[sourcenode])
-        # V = calculate_Vsource(H, mapping[sourcenode])
+        # I = calculate_Isource(H, self.mapping[sourcenode])
+        # V = calculate_Vsource(H, self.mapping[sourcenode])
 
         # todo for plotting
         # nx.set_node_attributes(
         #     H,
-        nx.information_centrality(M, weight='Y'),
+        nx.information_centrality(self.M, weight='Y'),
         #     "information_centrality"
         # )
 
         # todo for plotting
-        # Rnetwork = calculate_network_resistance(H, mapping[sourcenode]) \
+        # Rnetwork = calculate_network_resistance(H, self.mapping[sourcenode]) \
         #     if time == 0 else \
         #         nx.resistance_distance(
-        #             M,
-        #             mapping[sourcenode],
-        #             mapping[groundnode],
+        #             self.M,
+        #             self.mapping[sourcenode],
+        #             self.mapping[groundnode],
         #             weight = 'Y',
         #             invert_weight = False
         #         )
         # Ynetwork = 1/Rnetwork
 
         # Shortest_path_length_network = nx.shortest_path_length(
-        #     M,
-        #     source = mapping[sourcenode],
-        #     target = mapping[groundnode],
+        #     self.M,
+        #     source = self.mapping[sourcenode],
+        #     target = self.mapping[groundnode],
         #     weight = 'R'
         # )
 

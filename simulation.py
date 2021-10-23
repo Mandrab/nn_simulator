@@ -19,10 +19,10 @@ reads = 80              # reads at output
 pulse_count = 1         # number of stimulation pulses
 delta_t = 0.05          # virtual time delta
 
-v = 10                  # pulse amplitude of stimulation
+v = 10.0                # pulse amplitude of stimulation
 
 # stimulate for 10 timesteps and then rest
-Vins = [0.01] + [v] * pulse_duration * pulse_count + [0.01] * reads
+Vins = [v] * pulse_duration * pulse_count + [0.01] * reads
 
 # setup progressbar for print progress
 progressbar = progressbar.progressbar(range(timesteps))
