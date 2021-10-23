@@ -2,9 +2,9 @@
 
 # standard lib
 import logging
+import model.device.devices as devices
 
 # project files
-from model import NetworkUtils
 from model.device.default import default
 from model.inspect import print_info, inspect, information_centrality
 from model.NetworkStimulator import NetworkStimulator
@@ -12,20 +12,16 @@ from model.NetworkStimulator import NetworkStimulator
 # from view.view import plot_all
 
 
-def enable_logging(
-        level=logging.INFO,
-        format='[%(asctime)s %(levelname)s]\t %(message)s'
-):
-    logging.basicConfig(level=level, format=format)
-
-
-enable_logging()
-
+__LOGGING_FORMAT = '[%(asctime)s %(levelname)s]\t %(message)s'
 __all__ = [
-    "logging",
-    "NetworkUtils",
-    "default",
+    "logging", "debug_mode",    # logging utils
+    "default", "devices",       # device utils
     "print_info", "inspect", "information_centrality",
-    "NetworkStimulator",
-    "enable_logging"
+    "NetworkStimulator"         # simulator
 ]
+
+logging.basicConfig(level=logging.INFO, format=__LOGGING_FORMAT)
+
+
+def debug_mode():
+    logging.basicConfig(level=logging.DEBUG, format=__LOGGING_FORMAT)

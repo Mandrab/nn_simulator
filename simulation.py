@@ -5,8 +5,8 @@ import progressbar
 ###############################################################################
 # NETWORK SETUP
 
-connections = NetworkUtils.generate(device=default)
-graph = NetworkUtils.get_graph(connections)
+connections = devices.generate(device=default)
+graph = devices.get_graph(connections)
 
 ###############################################################################
 # ELECTRICAL STIMULATION

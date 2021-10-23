@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Device():
+class Device:
     wires_count: int
     centroid_dispersion: int
 
