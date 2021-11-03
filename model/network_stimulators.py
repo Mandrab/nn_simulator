@@ -19,7 +19,7 @@ def modified_voltage_node_analysis(device, v_ins):
 
     # create a matrix that stores the sum of the conductances of the edges
     # of a node
-    conductances = np.zeros(shape=(
+    admittances = np.zeros(shape=(
         nodes_count - grounds_count,
         nodes_count - grounds_count
     )) # matG
@@ -51,7 +51,7 @@ def modified_voltage_node_analysis(device, v_ins):
             # add conductance in matrix - divided by 1.
             # the slot contains the sum of the conductance of the edges
             # connected to the node
-            conductances[row_idx][row_idx] += edge['Y']
+            admittances[row_idx][row_idx] += edge['Y']
 
             # skip if the edge goes to a ground node
             if neighbor_idx in device.ground_nodes:
@@ -63,7 +63,7 @@ def modified_voltage_node_analysis(device, v_ins):
 
             # set the negative conductance to the slot that represent the
             # opposite side node (depends only on the given edge)
-            conductances[row_idx][col_idx] = -edge['Y']
+            admittances[row_idx][col_idx] = -edge['Y']
 
         # fill the next row with the data of another node
         row_idx += 1
@@ -74,7 +74,7 @@ def modified_voltage_node_analysis(device, v_ins):
         sources[source - ground_count] = 1
 
     # add sources conductance as the last column of the matrix
-    conductances = np.hstack((conductances, sources))
+    admittances = np.hstack((admittances, sources))
 
     # add a slot in the sources array
     sources = np.hstack((
@@ -83,11 +83,11 @@ def modified_voltage_node_analysis(device, v_ins):
      ))
 
     # add the sources also to the bottom of the matrix
-    conductances = np.vstack((conductances, sources)) # matY
+    admittances = np.vstack((admittances, sources)) # matY
 
-    # solve X matrix from Yx = z
+    # solve X matrix from Yx = z -> x = Y^(-1)z
     voltages = np.matmul(
-        np.linalg.inv(conductances),
+        np.linalg.inv(admittances),
         voltages
     )  # Ohm law; matX # todo maybe dot: is parallel but change something
 
