@@ -1,12 +1,12 @@
-from model import wires
-from model.device.Device import Device
-
 import logging
 import networkx as nx
 
+from model import wires
+from model.device.datasheet.Datasheet import Datasheet
+
 
 # NETWORK GENERATION
-def generate(device: Device):
+def generate_network(device: Datasheet):
     logging.info('Generating network')
 
     # generate the network
@@ -24,7 +24,7 @@ def generate(device: Device):
     # get junctions list and their positions
     wires.detect_junctions(wires_dict)
 
-    # genreate graph object and adjacency matrix
+    # generate graph object and adjacency matrix
     wires.generate_graph(wires_dict)
 
     return wires_dict

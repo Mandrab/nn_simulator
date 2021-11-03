@@ -1,6 +1,6 @@
-from model.device.Device import Device
+from model.device.datasheet.Datasheet import Datasheet
 
-default = Device(
+default = Datasheet(
     wires_count=1500,
     centroid_dispersion=200,
     mean_length=40.0,
@@ -8,8 +8,6 @@ default = Device(
     seed=40,
     Lx=500,
     Ly=500,
-    sourcenode=273,
-    groundnode=358,
     kp0=0.0001,
     eta_p=10,
     kd0=0.5,
