@@ -2,10 +2,10 @@ import logging
 import progressbar
 
 from model.functions import *
-from model.network_stimulators import modified_voltage_node_analysis
+from model.network.utils import modified_voltage_node_analysis
 
 
-class NetworkStimulator():
+class Stimulator():
     __bar = progressbar.ProgressBar(max_value=progressbar.UnknownLength)
     __counter = 0
     __close_step = lambda _: None
