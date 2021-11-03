@@ -42,6 +42,10 @@ class Data:
             ) for path in paths
         ]
 
+        self.information_centrality = nx.get_node_attributes(
+            H, 'information_centrality'
+        )
+
 
 def analyse(Hs, device):
     # get all source-ground combinations
