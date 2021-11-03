@@ -5,8 +5,12 @@ import progressbar
 ###############################################################################
 # NETWORK SETUP
 
-connections = devices.generate(device=default)
-graph = devices.get_graph(connections)
+# create a device that is represented by the given datasheet
+device = Device(
+    datasheet=default,
+    source_nodes=[273],
+    ground_nodes=[358],
+)
 
 ###############################################################################
 # ELECTRICAL STIMULATION
@@ -21,8 +25,9 @@ delta_t = 0.05          # virtual time delta
 
 v = 10.0                # pulse amplitude of stimulation
 
-# stimulate for 10 timesteps and then rest
-Vins = [v] * pulse_duration * pulse_count + [0.01] * reads
+# generate vin stimulation for each input
+stimulations = [v] * pulse_duration * pulse_count + [0.01] * reads
+stimulations = [[(source, stimulations[i]) for source in device.source_nodes] for i in range(timesteps)]
 
 # setup progressbar for print progress
 progressbar = progressbar.progressbar(range(timesteps))
@@ -31,17 +36,15 @@ progressbar = progressbar.progressbar(range(timesteps))
 logging.debug('Growth of the conductive path')
 
 # pristine state - create stimulator that initialize the state (todo ?)
-stimulator = NetworkStimulator(graph, device=default)
+stimulator = Stimulator(device=device, datasheet=default)
 
 # growth over time
 for i in range(timesteps):
-    stimulator.stimulate(default.sourcenode, default.groundnode, Vins[i])
+    stimulator.stimulate(stimulations[i])
     next(progressbar)
 
-information_centrality(stimulator.H)
-
 ###############################################################################
-# PLOTTING
+# ANALYSE & PLOTTING
 
-#inspect(graph)
-#plot.plot(lambda: plot.adj_matrix(connections))
+#inspect(device.graph)
+#plot.plot(device, default, plot.network)
