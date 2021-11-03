@@ -1,46 +1,39 @@
 import numpy as np
 
-from functools import cache
 
-
-# MODIFIED VOlTAGE NODE ANALYSIS
+# MODIFIED NODE ANALYSIS FOR VOLTAGES
 def modified_voltage_node_analysis(device, v_ins):
     graph = device.connected_nodes[0]
     nodes_count = graph.number_of_nodes()
     sources_count = len(device.source_nodes)
-    grounds_count = len(device.ground_nodes)
 
-    # create a matrix to store voltages of nodes
-    # for now, it only contains sources voltages # todo maybe sort sources from key
-    voltages = np.vstack((
-        np.zeros(shape=(nodes_count - sources_count, 1)),   # zeroed voltages
-        np.array([[*map(lambda pair: pair[1], v_ins)]]).T   # voltage inputs
-    )) # matZ
+    # sort source-voltage pairs by source id
+    # necessary because B, Z, and output vector's values must be in same order ->
+    #   -> easiest way is to sort it
+    v_ins = sorted(v_ins)
+
+    # create a vector to contain the voltages of the input nodes
+    Z = np.zeros(nodes_count)
+    for source, voltage in v_ins:
+        Z[source] = voltage
+
+    # create a vector to identify the sources (1: source, 0: non-source)
+    # each column contains only one '1': there is 1 column for each source
+    B = np.zeros(shape=(nodes_count, sources_count))
+    for idx in range(sources_count):
+        source, _ = v_ins[idx]
+        B[source][idx] = 1
 
     # create a matrix that stores the sum of the conductances of the edges
-    # of a node
-    admittances = np.zeros(shape=(
-        nodes_count - grounds_count,
-        nodes_count - grounds_count
-    )) # matG
-
-    # create a matrix to identify the sources
-    sources = np.zeros(shape=(nodes_count - grounds_count, 1)) # matB
-
-    # filling Y matrix as a combination of G B D in the form [(G B) ; (B' D)]
-
-    # row and col idx in conductance matrix
-    row_idx = 0
-
-    # define a function for the correct indexing in the matrix
-    @cache
-    def smaller_grounds(index):
-        return len([g for g in device.ground_nodes if g < index])
+    # incident on a node
+    # each row refer to a specific node and the index r,c represent the
+    # conductance in the arch from node r to c
+    Gs = np.zeros(shape=(nodes_count, nodes_count))
 
     # find conductance of edges
     for node_idx in range(nodes_count):
 
-        # ignore arcs connected with ground nodes todo why?
+        # ignore arcs connected with ground nodes
         if node_idx in device.ground_nodes:
             continue
 
@@ -51,52 +44,42 @@ def modified_voltage_node_analysis(device, v_ins):
             # add conductance in matrix - divided by 1.
             # the slot contains the sum of the conductance of the edges
             # connected to the node
-            admittances[row_idx][row_idx] += edge['Y']
+            Gs[node_idx][node_idx] += edge['Y']
 
             # skip if the edge goes to a ground node
             if neighbor_idx in device.ground_nodes:
                 continue
 
-            # check column idx where to add the conductance: since ground
-            # nodes column are not present, adjust the index
-            col_idx = neighbor_idx - smaller_grounds(neighbor_idx)
-
             # set the negative conductance to the slot that represent the
             # opposite side node (depends only on the given edge)
-            admittances[row_idx][col_idx] = -edge['Y']
-
-        # fill the next row with the data of another node
-        row_idx += 1
-
-    # set conductance of sources equal to 1
-    for source in device.source_nodes:
-        ground_count = smaller_grounds(source)
-        sources[source - ground_count] = 1
+            Gs[node_idx][neighbor_idx] = -edge['Y']
 
     # add sources conductance as the last column of the matrix
-    admittances = np.hstack((admittances, sources))
+    Y = np.hstack((Gs, B))
 
     # add a slot in the sources array
-    sources = np.hstack((
-        np.transpose(sources),  # make an array from a column
-        np.zeros(shape=(1, 1))  # single slot to add
-     ))
+    B = np.vstack((B, np.zeros(shape=(1, 1))))
+    B = np.transpose(B)
 
+    # construct Y matrix as a combination of G, B, D in the form [(G B); (B' D)]
     # add the sources also to the bottom of the matrix
-    admittances = np.vstack((admittances, sources)) # matY
+    Y = np.vstack((Y, B))
 
-    # solve X matrix from Yx = z -> x = Y^(-1)z
-    voltages = np.matmul(
-        np.linalg.inv(admittances),
-        voltages
-    )  # Ohm law; matX # todo maybe dot: is parallel but change something
+    # drop ground columns and rows: empty and does not allow matrix inversion
+    Y = np.delete(Y, device.ground_nodes, 1)
+    Y = np.delete(Y, device.ground_nodes, 0)
 
-    # add voltage as a node attribute
-    for n in graph.nodes():
-        if n in device.ground_nodes:
-            graph.nodes[n]['V'] = 0
-        else:
-            graph.nodes[n]['V'] = voltages[n - smaller_grounds(n)][0]
+    # perform analysis of the circuit (Yx = z -> x = Y^(-1)z)
+    # get an iterator in that it will be cycled only once
+    results = iter(np.matmul(np.linalg.inv(Y), Z))
+
+    # add calculated voltage as attribute of non-ground nodes
+    for idx in graph.nodes() - set(device.ground_nodes):
+        graph.nodes[idx]['V'] = next(results)
+
+    # set voltage for ground nodes to 0
+    for idx in device.ground_nodes:
+        graph.nodes[idx]['V'] = 0
 
     # DEFINE CURRENT DIRECTION
 
