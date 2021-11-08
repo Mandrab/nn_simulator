@@ -1,24 +1,27 @@
 import logging
 import networkx as nx
 
+from networkx import Graph
+
 from model import wires
 from model.device.datasheet.Datasheet import Datasheet
 
 
-# NETWORK GENERATION
-def generate_network(device: Datasheet):
+def generate_network(datasheet: Datasheet) -> dict:
+    """Generate the network according to the datasheet specifications"""
+
     logging.info('Generating network')
 
     # generate the network
     wires_dict = wires.generate_wires_distribution(
-        number_of_wires=device.wires_count,
-        wire_av_length=device.mean_length,
-        wire_dispersion=device.std_length,
+        number_of_wires=datasheet.wires_count,
+        wire_av_length=datasheet.mean_length,
+        wire_dispersion=datasheet.std_length,
         gennorm_shape=10,
-        centroid_dispersion=device.centroid_dispersion,
-        this_seed=device.seed,
-        Lx=device.Lx,
-        Ly=device.Ly
+        centroid_dispersion=datasheet.centroid_dispersion,
+        this_seed=datasheet.seed,
+        Lx=datasheet.Lx,
+        Ly=datasheet.Ly
     )
 
     # get junctions list and their positions
@@ -30,8 +33,9 @@ def generate_network(device: Datasheet):
     return wires_dict
 
 
-# GRAPH GENERATION
-def get_graph(wires_dict):
+def get_graph(wires_dict: dict) -> Graph:
+    """Generate graph from specifications"""
+
     logging.debug('Extracting graph from network')
 
     adj_matrix = wires_dict['adj_matrix']
@@ -60,3 +64,9 @@ def get_graph(wires_dict):
     '''
 
     return graph
+
+
+def generate_graph(datasheet: Datasheet) -> Graph:
+    """Get the graph from a datasheet specification"""
+
+    return get_graph(generate_network(datasheet))
