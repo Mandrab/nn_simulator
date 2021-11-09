@@ -8,7 +8,7 @@ from model.device.datasheet.default import default
 from model.device.factory import generate_network, get_graph, generate_graph
 from model.device.factory import minimum_viable_network
 from model.device.utils import initialize_graph_attributes, largest_component
-from model.interface.utils import random_ground, random_sources
+from model.interface.utils import random_ground, random_sources, mutate
 from model.stimulator import stimulate, voltage_initialization
 
 __all__ = [
@@ -22,7 +22,7 @@ __all__ = [
     # network initialization
     "initialize_graph_attributes", "largest_component",
     # interface / connection definition
-    "random_ground", "random_sources",
+    "random_ground", "random_sources", "mutate",
     # stimulation utilities for the network
     "stimulate", "voltage_initialization",
     # logging utilities & setups
