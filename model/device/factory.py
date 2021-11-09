@@ -5,6 +5,7 @@ from networkx import Graph
 
 from model import wires
 from model.device.datasheet.Datasheet import Datasheet
+from model.device.utils import largest_component
 
 
 def generate_network(datasheet: Datasheet) -> dict:
@@ -58,11 +59,6 @@ def get_graph(wires_dict: dict) -> Graph:
         graph[u][v]['jx_pos'] = (xjpos[n], yjpos[n])
         n = n + 1
 
-    '''
-    #list of wire lengths
-    wire_lengths = xpos = [x for x in wires_dict['wire_lengths']]
-    '''
-
     return graph
 
 
@@ -70,3 +66,19 @@ def generate_graph(datasheet: Datasheet) -> Graph:
     """Get the graph from a datasheet specification"""
 
     return get_graph(generate_network(datasheet))
+
+
+def minimum_viable_network(datasheet: Datasheet) -> (Graph, dict):
+    """
+    Produce the network specified by the datasheet.
+    To improve speed, reduce the network to the largest connected component.
+    For only 1 ground that is ok, but for more it may limit the potential of the
+    network: disjoint components may result in better performance when the
+    output are not correlated (todo that is just an hypothesis).
+    """
+
+    # create a device that is represented by the given datasheet
+    wires_dict = generate_network(datasheet)
+
+    # calculate the minimum network and return it with its original wires-dict
+    return largest_component(get_graph(wires_dict), relabel=True), wires_dict
