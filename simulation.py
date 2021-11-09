@@ -58,7 +58,7 @@ evolution.append(graph, stimulus)
 for i in range(1, steps):
     stimulate(graph, default, delta_t, stimulations[i], ground)
     evolution.append(graph, stimulations[i])
-    progressbar.update(i)
+    progressbar.update(i+1)
 
 ###############################################################################
 # ANALYSE & PLOTTING
