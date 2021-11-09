@@ -1,15 +1,17 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Datasheet:
+    """Define the static properties of the device"""
+
     wires_count: int
     centroid_dispersion: int
     mean_length: float
     std_length: float
     seed: int
 
-    # todo constant?
+    # device size
     Lx: int
     Ly: int
 
