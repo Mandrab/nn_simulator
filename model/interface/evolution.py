@@ -1,16 +1,74 @@
 import random
 
+from functools import reduce
 from networkx import Graph
+from typing import Callable, List, Set
+
+
+def non_ground_selection(graph: Graph, _: List[int], ground: int) -> Set[int]:
+    """Returns non-ground nodes for the mutation"""
+
+    return {*graph.nodes} - {ground}
+
+
+def minimum_distance_selection(
+        outputs: List[int],
+        distance: int
+) -> Callable[[Graph, List[int], int], Set[int]]:
+    """
+    Returns a function the viable nodes selection for the mutation.
+    Non-ground nodes and nodes that are 'distance' step near to an output node
+    are not selected.
+    """
+
+    def _(graph: Graph, _: List[int], ground: int) -> Set[int]:
+
+        # remove ground node from the viable ones
+        viable_nodes = {*graph.nodes} - {ground}
+
+        # find nodes 'distance' distant from the output
+        def neighbours(node: int, distance: int) -> Set[int]:
+
+            # base condition: distance 0 is empty set
+            if distance <= 0:
+                return set()
+
+            # take distance 1 neighbours
+            adjacent_neighbours = {v for k, v in graph.edges(node)}
+
+            # take farther neighbours (neighbours of neighbours)
+            neighbours_neighbours = [
+                neighbours(node, distance - 1)
+                for node in adjacent_neighbours
+            ]
+
+            # reduce to only a set
+            neighbours_neighbours = reduce(
+                lambda f, s: f | s,
+                neighbours_neighbours
+            )
+
+            return adjacent_neighbours | neighbours_neighbours
+
+        # take neighbours nodes (and neighbours of neighbours, etc...)
+        neighbours = [neighbours(output, distance) for output in outputs]
+        neighbours = reduce(lambda f, s: f | s, neighbours)
+
+        return viable_nodes - {*outputs} - neighbours
+
+    return _
 
 
 def mutate(
         graph: Graph,
-        sources: [int],
+        sources: List[int],
         ground: int,
         probability: float,
         minimum_mutants: int,
-        maximum_mutants: int
-) -> [int]:
+        maximum_mutants: int,
+        viable_node_selection: Callable[[Graph, List[int], int], Set[int]] =
+            non_ground_selection
+) -> List[int]:
     """
     Mutate the input connections of the network in a random way.
     Each source can change, with a fixed probability, between the non-ground
@@ -50,13 +108,13 @@ def mutate(
     elif mutants_count > maximum_mutants:
         change_mutants_number(maximum_mutants - mutants_count)
 
-    # select viable alternative nodes (i.e., not ground)
-    viable_nodes = {*graph.nodes} - {ground}
+    # select viable alternative nodes
+    viable_nodes = viable_node_selection(graph, sources, ground)
 
     # if source change, take a random node != from itself and the ground
     # if source does not change return it
     return [
-        [*viable_nodes - {source}][random.randint(0, len(viable_nodes) - 1)]
+        [*viable_nodes - {source}][random.randrange(len(viable_nodes) - 1)]
         if changes[idx] else source
         for idx, source in enumerate(sources)
     ]
