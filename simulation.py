@@ -10,25 +10,15 @@ random.seed(1234)
 # NETWORK SETUP
 
 # create a device that is represented by the given datasheet
-wires_dict = generate_network(datasheet=default)
-
-# obtain graph representation of the device
-graph = get_graph(wires_dict)
-
-# to simplify analysis, take only the largest connected component
-# that's ok if there is only one ground; for more grounds also disjoint
-# components are ok and may improve functioning: todo hypothesis
-graph = largest_component(graph, relabel=True)
+graph, wires_dict = minimum_viable_network(default)
 
 # select a random ground node
-ground = random.randint(0, graph.number_of_nodes())
+# ground = random_ground(graph)
+ground = 358
 
 # select node sources from non-ground nodes
-nodes = [*{*graph.nodes()} - {ground}]
-sources = [
-    nodes.pop(random.randint(0, len(nodes)))
-    for _ in range(4)   # take four sources
-]
+# sources = random_sources(graph, ground, count=4)
+sources = [273]
 
 ################################################################################
 # ELECTRICAL STIMULATION
@@ -51,7 +41,7 @@ stimulations = [
 ]
 
 # setup progressbar for print progress
-progressbar = progressbar.progressbar(range(steps))
+progressbar = progressbar.ProgressBar(max_value=steps)
 
 # growth of the conductive path
 logging.debug('Growth of the conductive path')
@@ -68,7 +58,7 @@ evolution.append(graph, stimulus)
 for i in range(1, steps):
     stimulate(graph, default, delta_t, stimulations[i], ground)
     evolution.append(graph, stimulations[i])
-    next(progressbar)
+    progressbar.update(i)
 
 ###############################################################################
 # ANALYSE & PLOTTING
