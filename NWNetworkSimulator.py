@@ -8,7 +8,8 @@ from model.device.datasheet.default import default
 from model.device.factory import generate_network, get_graph, generate_graph
 from model.device.factory import minimum_viable_network
 from model.device.utils import initialize_graph_attributes, largest_component
-from model.interface.utils import random_ground, random_sources, mutate
+from model.interface.creation import random_ground, random_sources
+from model.interface.evolution import mutate
 from model.stimulator import stimulate, voltage_initialization
 
 __all__ = [
