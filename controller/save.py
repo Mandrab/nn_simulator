@@ -1,59 +1,97 @@
+import dataclasses
+import json
+import logging
 
-import sys
+import networkx as nx
 
-############################### SAVE DATA #####################################
-'''
-filename = "nodes_" + str(nwires) + "_junctions_" + str(number_of_edges) + "_seed_"+str(seed)+".txt"
-my_data = np.vstack((degrees,clustering))
-my_data = my_data.T
-np.savetxt(filename,my_data, delimiter = ',', header = 'degree,clustering',comments = '')
+from model.device.datasheet.Datasheet import Datasheet
+from model.device.datasheet.constructor import from_dict
+from networkx import Graph
+from os.path import exists
 
-
-
-###make a graph for gephi
-Z = nx.from_numpy_matrix(Adj_matrix)
-nx.write_gexf(Z, "test.gexf")
-
-'''
-def save():
-
-    #%% Save data (electrical part)
-    logging.debug('Data saving')
-    timestamp = 0
+__DATASHEET_FILE = "datasheet.dat"
+__GRAPH_FILE = "graph.dat"
+__WIRES_FILE = "wires.dat"
 
 
-    #nodes
-    pos_el_nodes = nx.get_node_attributes(H_list[timestamp], 'pos')
-    x_pos_el = [pos_el_nodes[n][0] for n in H_list[timestamp].nodes]
-    y_pos_el = [pos_el_nodes[n][1] for n in H_list[timestamp].nodes]
-    V_list_el = [H_list[timestamp].nodes[n]['V'] for n in H_list[timestamp].nodes()]
-    Information_centrality_el = [H_list[timestamp].nodes[n]['information_centrality'] for n in H_list[timestamp].nodes()]
+def save(
+        datasheet: Datasheet,
+        graph: Graph,
+        wires: dict,
+        datasheet_file: str = __DATASHEET_FILE,
+        graph_file: str = __GRAPH_FILE,
+        wires_file: str = __WIRES_FILE
+):
+    """Save the graph, datasheet and wires to files"""
+
+    logging.info("Saving graph to file")
+
+    # convert wires dict to correct format
+    wires = dict(
+        xa=wires['xa'].tolist(),
+        ya=wires['ya'].tolist(),
+        xc=wires['xc'].tolist(),
+        yc=wires['yc'].tolist(),
+        xb=wires['xb'].tolist(),
+        yb=wires['xa'].tolist(),
+        theta=wires['theta'].tolist(),
+        avg_length=wires['avg_length'],
+        wire_lengths=wires['wire_lengths'].tolist(),
+        dispersion=wires['dispersion'],
+        centroid_dispersion=wires['centroid_dispersion'],
+        gennorm_shape=wires['gennorm_shape'],
+        this_seed=wires['this_seed'],
+        outside=wires['outside'].tolist(),
+        length_x=wires['length_x'],
+        length_y=wires['length_y'],
+        number_of_wires=wires['number_of_wires'],
+        wire_distances=wires['wire_distances'].tolist()
+    )
+
+    data = [
+        (datasheet_file, dataclasses.asdict(datasheet)),
+        (graph_file, nx.node_link_data(graph)),
+        (wires_file, wires)
+    ]
+
+    # save each data in the file with a json format
+    for file_name, data in data:
+        with open(file_name, 'w') as file:
+            json.dump(data, file)
 
 
-    #node file
-    filename_el = "Electrical_data_nodes_"+"timestamp = "+str(timestamp)+"_nodes_" + str(nwires) + "_seed_"+str(seed)+".txt"
-    my_data_el = np.vstack((x_pos_el,y_pos_el,V_list_el,Information_centrality_el))
-    my_data_el = my_data_el.T
-    np.savetxt(filename_el,my_data_el, delimiter = ',', header = 'x_pos,y_pos,V_list, Information_centrality_list',comments = '')
+def exist(
+        datasheet_file: str = __DATASHEET_FILE,
+        graph_file: str = __GRAPH_FILE,
+        wires_file: str = __WIRES_FILE
+) -> (bool, bool):
+    """Check if graph, datasheet and wires files exists"""
+
+    return exists(graph_file), exists(datasheet_file), exists(wires_file)
 
 
+def read(
+        datasheet_file: str = __DATASHEET_FILE,
+        graph_file: str = __GRAPH_FILE,
+        wires_file: str = __WIRES_FILE
+) -> (Graph, dict):
+    """Read graph, datasheet and wires from the files and import them"""
 
-    #edges
-    pos_el_jx = [H_list[timestamp].edges[u, v]['jx_pos'] for u,v in H_list[timestamp].edges()]
-    xj_pos_el = [pos_el_jx[n][0] for n in range(0,len(pos_el_jx))]
-    yj_pos_el = [pos_el_jx[n][1] for n in range(0,len(pos_el_jx))]
-    I_list_el = [H_list[timestamp].edges[u, v]['I'] for u,v in H_list[timestamp].edges()]
-    Y_list_el = [H_list[timestamp].edges[u, v]['Y'] for u,v in H_list[timestamp].edges()]
-    g_list_el = [H_list[timestamp].edges[u, v]['g'] for u,v in H_list[timestamp].edges()]
+    logging.info("Importing graph from file")
 
-    #edge file
-    filename_el_2 = "Electrical_data_edges_"+"timestamp = "+str(timestamp)+"_nodes_" + str(nwires) + "_seed_"+str(seed)+".txt"
-    my_data_el_2 = np.vstack((xj_pos_el,yj_pos_el,I_list_el,Y_list_el,g_list_el))
-    my_data_el_2 = my_data_el_2.T
-    np.savetxt(filename_el_2,my_data_el_2, delimiter = ',', header = 'xj_pos,yj_pos,I_list,Y_list,g_list',comments = '')
+    # load and convert the json to a datasheet
+    with open(datasheet_file, 'r') as file:
+        text = json.load(file)
+        datasheet = from_dict(text)
 
-    #I-V list
-    filename_el_3 = "Electrical_I-V-Y-SP-data_"+"_nodes_" + str(nwires) + "_seed_"+str(seed)+".txt"
-    my_data_el_3 = np.vstack((t_list,V_list,I_list,Rnetwork_list,Ynetwork_list,Shortest_path_length_network_list))
-    my_data_el_3 = my_data_el_3.T
-    np.savetxt(filename_el_3,my_data_el_3, delimiter = ',', header = 't_list,V_list,I_list,Rnetwork_list,Ynetwork_list,Shortest_path_length_network_list',comments = '')
+    # load and convert the json to a graph
+    with open(graph_file, 'r') as file:
+        text = json.load(file)
+        graph = nx.node_link_graph(text)
+
+    # load and convert the json to a wires dict
+    with open(wires_file, 'r') as file:
+        wires = json.load(file)
+
+    # build the graph and return it
+    return graph, datasheet, wires
