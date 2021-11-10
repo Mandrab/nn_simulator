@@ -26,4 +26,4 @@ class Datasheet:
     Y_max: float = 0.001 * 100
 
 
-default = Datasheet
+default = Datasheet()
