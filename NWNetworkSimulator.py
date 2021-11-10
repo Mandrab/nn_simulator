@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
 import view.plot as plot
+import controller.backup as backup
 
 from model.analysis.evolution import Evolution
 from model.analysis.measures import print_info, inspect
-from model.device.datasheet.default import default
+from model.device.datasheet.Datasheet import default
 from model.device.factory import generate_network, get_graph, generate_graph
 from model.device.factory import minimum_viable_network
 from model.device.utils import initialize_graph_attributes, largest_component
@@ -14,6 +15,8 @@ from model.interface.evolution import mutate, non_ground_selection, \
 from model.stimulator import stimulate, voltage_initialization
 
 __all__ = [
+    # file system interactions
+    "backup",
     # statistical analysis
     "Evolution",                # network-state collectors for analysis
     "print_info", "inspect",    # supervision utils

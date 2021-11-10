@@ -3,14 +3,26 @@ import random
 
 from NWNetworkSimulator import *
 
+################################################################################
+# SIMULATION SETUP
+
 # set constant seed for simulation
 random.seed(1234)
 
-###############################################################################
+################################################################################
 # NETWORK SETUP
 
-# create a device that is represented by the given datasheet
-graph, wires_dict = minimum_viable_network(default)
+# if graph, datasheet and wires backup-files exist, import them
+if all(backup.exist()):
+    graph, default, wires_dict = backup.read()
+
+# if the backup-files does not exists, create the network and save it
+else:
+    # create a device that is represented by the given datasheet
+    graph, wires_dict = minimum_viable_network(default)
+
+    # save a copy of the created graphs
+    backup.save(default, graph, wires_dict)
 
 # select a random ground node
 # ground = random_ground(graph)
@@ -63,18 +75,18 @@ for i in range(1, steps):
 ###############################################################################
 # ANALYSE & PLOTTING
 
-inspect(graph)
+# inspect(graph)
 
-plot.plot(evolution, plot.adj_matrix)
-plot.plot(evolution, plot.network)
-plot.plot(evolution, plot.graph)
-plot.plot(evolution, plot.kamada_kawai_graph)
-plot.plot(evolution, plot.degree_of_nodes)
-plot.plot(evolution, plot.highlight_connected_components)
-plot.plot(evolution, plot.largest_connected_component)
-plot.plot(evolution, plot.network_7)
-plot.plot(evolution, plot.conductance)
-plot.plot(evolution, plot.voltage_distribution_map)
-plot.plot(evolution, plot.conductance_map)
-plot.plot(evolution, plot.information_centrality_map)
-plot.plot(evolution, plot.animation)
+# plot.plot(evolution, plot.adj_matrix)
+# plot.plot(evolution, plot.network)
+# plot.plot(evolution, plot.graph)
+# plot.plot(evolution, plot.kamada_kawai_graph)
+# plot.plot(evolution, plot.degree_of_nodes)
+# plot.plot(evolution, plot.highlight_connected_components)
+# plot.plot(evolution, plot.largest_connected_component)
+# plot.plot(evolution, plot.network_7)
+# plot.plot(evolution, plot.conductance)
+# plot.plot(evolution, plot.voltage_distribution_map)
+# plot.plot(evolution, plot.conductance_map)
+# plot.plot(evolution, plot.information_centrality_map)
+# plot.plot(evolution, plot.animation)
