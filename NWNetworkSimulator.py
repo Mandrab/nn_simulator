@@ -9,7 +9,7 @@ from model.device.datasheet.Datasheet import default
 from model.device.factory import generate_network, get_graph, generate_graph
 from model.device.factory import minimum_viable_network
 from model.device.utils import initialize_graph_attributes, largest_component
-from model.interface.creation import random_ground, random_sources
+from model.interface.creation import random_nodes
 from model.interface.evolution import mutate, non_ground_selection, \
     minimum_distance_selection
 from model.stimulator import stimulate, voltage_initialization
@@ -27,8 +27,8 @@ __all__ = [
     # network initialization
     "initialize_graph_attributes", "largest_component",
     # interface / connection definition
-    "random_ground", "random_sources", "mutate",
-    "non_ground_selection", "minimum_distance_selection",
+    "random_nodes", "mutate", "non_ground_selection",
+    "minimum_distance_selection",
     # stimulation utilities for the network
     "stimulate", "voltage_initialization",
     # logging utilities & setups
