@@ -1,29 +1,62 @@
 import math
-
 import numpy as np
 
 from networkx import Graph
-
+from typing import List, Tuple, Set
 from model.device.datasheet.Datasheet import Datasheet
+
+__SHORT_CIRCUIT_RES = 0.0001
 
 
 def stimulate(
         graph: Graph,
         datasheet: Datasheet,
         delta_time: float,
-        inputs: (int, float),
-        ground: int
+        inputs: List[Tuple[int, float]],
+        outputs: List[Tuple[int, float]],
+        grounds: Set[int]
 ):
-    """Stimulate the network through a voltage in a given pin"""
+    """
+    Stimulate the network through voltage-inputs on given pins.
+    The function directly modify the passed graph.
+
+    Parameters:
+    ----------
+    graph: Graph
+        The network to stimulate
+    datasheet: Datasheet
+        The datasheet of the characteristics of the device
+    delta_time: float
+        The time elapsed from the last update
+    inputs: List[Tuple[int, float]],
+        List of source-nodes with, for each, the correspondent voltage value
+    outputs: List[Tuple[int, float]]
+        List of outputs of the network with the correspondent resistance/load.
+        The resistance is considered as the resistance of the arch that bring
+        to the ground.
+    """
 
     # update weights of the edges. they need to be initialized
     update_edge_weights(graph, datasheet, delta_time)
 
+    # add weighted edges to simulate output loads. An edge of those is a newly
+    # added ground node that is returned by the function to be deleted after
+    # the analysis.
+    # the vector contains the new grounds used for analysis
+    new_grounds = {
+        interface(graph, output, resistance)
+        for output, resistance in outputs
+    }
+
     # update voltage values of the nodes of the system after the stimulation
-    modified_voltage_node_analysis(graph, inputs, ground)
+    modified_voltage_node_analysis(graph, inputs, grounds | new_grounds)
+
+    # remove the grounds and the edges used for the analysis
+    for ground in new_grounds:
+        graph.remove_node(ground)
 
 
-def update_edge_weights(graph, datasheet, delta_time):
+def update_edge_weights(graph: Graph, datasheet: Datasheet, delta_time: float):
     """Update edges weights (Miranda's model)"""
 
     for u, v in graph.edges():
@@ -45,11 +78,36 @@ def update_edge_weights(graph, datasheet, delta_time):
         edge['R'] = 1 / edge['Y']
 
 
-def modified_voltage_node_analysis(graph: Graph, inputs: (int, float), ground):
+def interface(graph: Graph, output: int, resistance: float) -> int:
+    """
+    Connect a device to the selected output node.
+    The device is represented by an edge with a specific resistance and it is
+    connected to a newly added ground.
+    The ground is finally returned.
+    """
+
+    # generate a ground id and add it to the graph
+    ground = graph.number_of_nodes()
+    graph.add_node(ground)
+    graph.nodes[ground]['V'] = 0
+
+    # add a weighted edge between output and ground
+    graph.add_edge(output, ground)
+    graph[output][ground]['Y'] = 1 / resistance
+
+    return ground
+
+
+def modified_voltage_node_analysis(
+        graph: Graph,
+        inputs: List[Tuple[int, float]],
+        grounds: Set[int]
+):
     """Execute modified node analysis for voltages"""
 
     nodes_count = graph.number_of_nodes()
-    sources_count = len(inputs)
+    inputs_count = len(inputs)
+    grounds_count = len(grounds)
 
     # sort source-voltage pairs by source id
     # necessary because B, Z, and output vector's values must be in same order
@@ -57,15 +115,15 @@ def modified_voltage_node_analysis(graph: Graph, inputs: (int, float), ground):
     v_ins = sorted(inputs)
 
     # create a vector to contain the voltages of the input nodes
-    Z = np.zeros(nodes_count + sources_count - 1)
+    # the ground nodes are not present
+    Z = np.zeros(nodes_count - grounds_count + inputs_count)
     for i, (_, voltage) in enumerate(v_ins):
-        Z[nodes_count - 1 + i] = voltage
+        Z[nodes_count - grounds_count + i] = voltage
 
     # create a vector to identify the sources (1: source, 0: non-source)
     # each column contains only one '1': there is 1 column for each source
-    B = np.zeros(shape=(nodes_count, sources_count))
-    for idx in range(sources_count):
-        source, _ = v_ins[idx]
+    B = np.zeros(shape=(nodes_count, inputs_count))
+    for idx, (source, _) in enumerate(v_ins):
         B[source][idx] = 1
 
     # create a matrix that stores the sum of the conductances of the edges
@@ -78,7 +136,7 @@ def modified_voltage_node_analysis(graph: Graph, inputs: (int, float), ground):
     for node_idx in graph.nodes:
 
         # ignore arcs connected with ground nodes
-        if node_idx == ground:
+        if node_idx in grounds:
             continue
 
         for neighbor_idx in graph.neighbors(node_idx):
@@ -91,18 +149,18 @@ def modified_voltage_node_analysis(graph: Graph, inputs: (int, float), ground):
             Gs[node_idx][node_idx] += edge['Y']
 
             # skip if the edge goes to a ground node
-            if neighbor_idx == ground:
+            if neighbor_idx in grounds:
                 continue
 
             # set the negative conductance to the slot that represent the
             # opposite side node (depends only on the given edge)
             Gs[node_idx][neighbor_idx] = -edge['Y']
 
-    # add sources conductance as the last column of the matrix
+    # add sources identifiers as the last column of the matrix
     Y = np.hstack((Gs, B))
 
     # add a slot in the sources array
-    B = np.vstack((B, np.zeros(shape=(sources_count, sources_count))))
+    B = np.vstack((B, np.zeros(shape=(inputs_count, inputs_count))))
     B = np.transpose(B)
 
     # construct Y matrix as a combination of G, B, D in the form [(G B); (B' D)]
@@ -110,29 +168,30 @@ def modified_voltage_node_analysis(graph: Graph, inputs: (int, float), ground):
     Y = np.vstack((Y, B))
 
     # drop ground columns and rows: empty and does not allow matrix inversion
-    Y = np.delete(Y, ground, 1)
-    Y = np.delete(Y, ground, 0)
+    Y = np.delete(Y, [*grounds], 1)
+    Y = np.delete(Y, [*grounds], 0)
 
     # perform analysis of the circuit (Yx = z -> x = Y^(-1)z)
     # get an iterator in that it will be cycled only once
     results = iter(np.matmul(np.linalg.inv(Y), Z))
 
     # add calculated voltage as attribute of non-ground nodes
-    for idx in graph.nodes() - {ground}:
+    for idx in graph.nodes() - grounds:
         graph.nodes[idx]['V'] = next(results)
 
     # set voltage for ground nodes to 0
-    graph.nodes[ground]['V'] = 0
+    for ground in grounds:
+        graph.nodes[ground]['V'] = 0
 
 
 def voltage_initialization(
         graph: Graph,
-        sources: [int],
-        ground: int
-) -> [(int, float)]:
+        sources: Set[int],
+        grounds: Set[int]
+) -> List[Tuple[int, float]]:
     """Call modified voltage analysis for an initial setup of the network"""
 
     stimulus = [(source, 0.01) for source in sources]
-    modified_voltage_node_analysis(graph, stimulus, ground)
+    modified_voltage_node_analysis(graph, stimulus, grounds)
 
     return stimulus
