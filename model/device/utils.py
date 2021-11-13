@@ -4,6 +4,7 @@ import random
 import networkx as nx
 
 from networkx import grid_graph, Graph
+from typing import Set
 
 
 def largest_component(graph: Graph, relabel: bool = False) -> Graph:
@@ -57,7 +58,12 @@ def define_grid_graph_2(x_size: int, y_size: int):
     return define_grid_graph(x_size, y_size, init)
 
 
-def initialize_graph_attributes(graph: Graph, y_in: float):
+def initialize_graph_attributes(
+        graph: Graph,
+        sources: Set[int],
+        grounds: Set[int],
+        y_in: float
+):
     """Initialize graph parameters"""
 
     # add the initial conductance
@@ -71,8 +77,8 @@ def initialize_graph_attributes(graph: Graph, y_in: float):
         graph[u][v]['deltaV'] = 0
         graph[u][v]['g'] = 0
 
-    # initialize
+    # initialize todo probably useless
     for n in graph.nodes():
         graph.nodes[n]['pad'] = False
-        graph.nodes[n]['source_node'] = False
-        graph.nodes[n]['ground_node'] = False
+        graph.nodes[n]['source_node'] = n in sources
+        graph.nodes[n]['ground_node'] = n in grounds
