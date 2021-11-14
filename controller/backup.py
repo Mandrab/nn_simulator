@@ -5,7 +5,7 @@ import logging
 import networkx as nx
 
 from model.device.datasheet.Datasheet import Datasheet
-from model.device.datasheet.constructor import from_dict
+from model.device.datasheet.factory import from_dict
 from networkx import Graph
 from os.path import exists
 

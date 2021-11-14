@@ -9,8 +9,8 @@ from model.device.datasheet.Datasheet import default
 from model.device.factory import generate_network, get_graph, generate_graph
 from model.device.factory import minimum_viable_network
 from model.device.utils import initialize_graph_attributes, largest_component
-from model.interface.creation import random_nodes, random_loads
-from model.interface.evolution import mutate, non_ground_selection, \
+from model.interface.factory import random_nodes, random_loads
+from model.interface.evolutor import mutate, non_ground_selection, \
     minimum_distance_selection
 from model.stimulator import stimulate, voltage_initialization
 

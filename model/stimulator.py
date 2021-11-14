@@ -4,7 +4,7 @@ import numpy as np
 from networkx import Graph
 from typing import List, Tuple, Set
 from model.device.datasheet.Datasheet import Datasheet
-from model.interface.connect import connect
+from model.interface.connector import connect
 
 __SHORT_CIRCUIT_RES = 0.0001
 
