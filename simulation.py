@@ -25,12 +25,13 @@ else:
     backup.save(default, graph, wires_dict)
 
 # select a random ground node
-# ground = random_ground(graph)
-ground = 358
+grounds = random_nodes(graph, avoid=set())
 
-# select node sources from non-ground nodes
-# sources = random_sources(graph, ground, count=4)
-sources = [273]
+# select source nodes from non-grounds nodes
+sources = random_nodes(graph, grounds, count=4)
+
+# select output nodes from non-grounds & non-source nodes # todo distance
+loads = random_loads(graph, grounds | sources, count=2)
 
 ################################################################################
 # ELECTRICAL STIMULATION
@@ -59,18 +60,25 @@ progressbar = progressbar.ProgressBar(max_value=steps)
 logging.debug('Growth of the conductive path')
 
 # initialize network
-initialize_graph_attributes(graph, default.Y_min)
-stimulus = voltage_initialization(graph, sources, ground)
+initialize_graph_attributes(graph, sources, grounds, default.Y_min)
+stimulus = voltage_initialization(graph, sources, grounds)
 
 # creation of an analysis utility and save of initial state
-evolution = Evolution(default, wires_dict, ground, delta_t)
+evolution = Evolution(
+    default,
+    wires_dict,
+    delta_t,
+    grounds,
+    {n for n, r in loads}
+)
 evolution.append(graph, stimulus)
 
 # growth over time
 for i in range(1, steps):
-    stimulate(graph, default, delta_t, stimulations[i], ground)
+    stimulate(graph, default, delta_t, stimulations[i], [*loads], grounds)
     evolution.append(graph, stimulations[i])
     progressbar.update(i+1)
+progressbar.finish()
 
 ###############################################################################
 # ANALYSE & PLOTTING
@@ -90,3 +98,4 @@ for i in range(1, steps):
 # plot.plot(evolution, plot.conductance_map)
 # plot.plot(evolution, plot.information_centrality_map)
 # plot.plot(evolution, plot.animation)
+# plot.plot(evolution, plot.animation_kamada_kawai)
