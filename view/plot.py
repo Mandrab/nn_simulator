@@ -8,8 +8,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 from functools import cache
-from matplotlib.animation import FuncAnimation
-
+from matplotlib.animation import FuncAnimation, ImageMagickWriter
 from model.analysis.evolution import Evolution
 from model.device.utils import largest_component
 from view.plotting import draw_wires, draw_junctions
@@ -218,7 +217,7 @@ def network_7(_, ax, plot_data):
     nx.draw_networkx_nodes(
         plot_data.graph,
         pos,
-        nodelist=[plot_data.ground],
+        nodelist=plot_data.grounds | plot_data.loads,
         node_color='k',
         node_size=300,
         alpha=0.5
@@ -242,7 +241,7 @@ def conductance(fig, ax1, plot_data):
             (source, nx.resistance_distance(
                 graph,
                 source,
-                plot_data.ground,
+                plot_data.grounds | plot_data.loads[0],  # todo
                 weight='Y',
                 invert_weight=False
             )) for source, _ in inputs
@@ -311,7 +310,7 @@ def voltage_distribution_map(_, ax, plot_data):
 
     nx.draw_networkx_nodes(
         L, pos,
-        nodelist=[plot_data.ground],
+        nodelist=plot_data.grounds | plot_data.loads,
         node_color='k',
         node_size=300,
         alpha=0.5
@@ -356,7 +355,7 @@ def conductance_map(_, ax, plot_data):
     nx.draw_networkx_nodes(
         L,
         pos,
-        nodelist=[plot_data.ground],
+        nodelist=plot_data.grounds | plot_data.loads,
         node_color='k',
         node_size=300,
         alpha=0.5
@@ -418,7 +417,7 @@ def information_centrality_map(_, ax, plot_data):
     nx.draw_networkx_nodes(
         L,
         pos,
-        nodelist=[plot_data.ground],
+        nodelist=plot_data.grounds | plot_data.loads,
         node_color='k',
         node_size=300,
         alpha=0.5
@@ -426,11 +425,11 @@ def information_centrality_map(_, ax, plot_data):
 
 
 def animation(fig, ax, plot_data):
-    """Plot animated evolution"""
+    """Plot animated conductance evolution"""
 
-    frames_num = len(plot_data.network_instances) -1
+    frames_num = len(plot_data.network_instances) - 1
 
-    frames_interval = 1500
+    frames_interval = 500
 
     hs = [*plot_data.currents_graphs()]
     t_list = [i * plot_data.delta_t for i in range(frames_num)]
@@ -471,53 +470,51 @@ def animation(fig, ax, plot_data):
         repeat=True
     )
 
-    #plt.show()
+    # plt.show()
     anim.save('animation_1.gif', writer='imagemagick')
 
-    ###############################################################################
 
-    '''
-    #%% ANIMATION 2 (draw_kamada_kawai)
+def animation_kamada_kawai(fig, ax, plot_data):
+    """Plot animated conductance evolution in kamada kawai style"""
 
-    ### Parameters
+    frames_num = len(plot_data.network_instances) - 1
 
-    frames_num = timesteps
-    frames_interval = 1500
+    frames_interval = 500
 
-    fig3, ax = plt.subplots(figsize = (10,10))
-
-
-    ### Update function
+    hs = [*plot_data.currents_graphs()]
+    t_list = [i * plot_data.delta_t for i in range(frames_num)]
 
     def update(i):
-        
-        plt.cla() 
-        
-        
-        
-        nx.draw_kamada_kawai(H_list[i], 
-                    #NODES
-                    node_size = 60,
-                    node_color = [H_list[i].nodes[n]['V'] for n in H_list[i].nodes()],
-                    cmap = plt.cm.Blues,
-                    vmin = -5,
-                    vmax = 10,
-                    #EDGES
-                    width = 4,
-                    edge_color = [H_list[i][u][v]['Y'] for u,v in H_list[i].edges()],
-                    edge_cmap = plt.cm.Reds,
-                    edge_vmin = Y_min,
-                    edge_vmax = Y_max,
-                    with_labels = False,   #Set TRUE to see node numbers
-                    font_size = 6,)
-        
+        plt.cla()
+
+        nx.draw_kamada_kawai(
+            hs[i],
+            # NODES
+            node_size=60,
+            node_color=[hs[i].nodes[n]['V'] for n in hs[i].nodes()],
+            cmap=plt.cm.Blues,
+            vmin=-5,
+            vmax=10,
+            # EDGES
+            width=4,
+            edge_color=[hs[i][u][v]['Y'] for u, v in hs[i].edges()],
+            edge_cmap=plt.cm.Reds,
+            edge_vmin=plot_data.datasheet.Y_min,
+            edge_vmax=plot_data.datasheet.Y_max,
+            with_labels=False,  # Set TRUE to see node numbers
+            font_size=6
+        )
+
         ax.set_title("t = {}".format(round(t_list[i], 1)))
-        
 
-    ### Animation
-    anim = matplotlib.animation.FuncAnimation(fig3, update, frames = frames_num, interval = frames_interval, blit = False, repeat = True)
+    anim = FuncAnimation(
+        fig,
+        update,
+        frames=frames_num,
+        interval=frames_interval,
+        blit=False,
+        repeat=True
+    )
 
-    anim.save('animation_2.gif', writer = 'imagemagick')
-
-    ###############################################################################
-    '''
+    # plt.show()
+    anim.save('animation_2.gif', writer=ImageMagickWriter(fps=2))
