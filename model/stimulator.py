@@ -4,6 +4,7 @@ import numpy as np
 from networkx import Graph
 from typing import List, Tuple, Set
 from model.device.datasheet.Datasheet import Datasheet
+from model.interface.connect import connect
 
 __SHORT_CIRCUIT_RES = 0.0001
 
@@ -44,7 +45,7 @@ def stimulate(
     # the analysis.
     # the vector contains the new grounds used for analysis
     new_grounds = {
-        interface(graph, output, resistance)
+        connect(graph, output, resistance)
         for output, resistance in outputs
     }
 
@@ -76,26 +77,6 @@ def update_edge_weights(graph: Graph, datasheet: Datasheet, delta_time: float):
             )
         edge['Y'] = datasheet.Y_min*(1 - edge['g']) + datasheet.Y_max*edge['g']
         edge['R'] = 1 / edge['Y']
-
-
-def interface(graph: Graph, output: int, resistance: float) -> int:
-    """
-    Connect a device to the selected output node.
-    The device is represented by an edge with a specific resistance and it is
-    connected to a newly added ground.
-    The ground is finally returned.
-    """
-
-    # generate a ground id and add it to the graph
-    ground = graph.number_of_nodes()
-    graph.add_node(ground)
-    graph.nodes[ground]['V'] = 0
-
-    # add a weighted edge between output and ground
-    graph.add_edge(output, ground)
-    graph[output][ground]['Y'] = 1 / resistance
-
-    return ground
 
 
 def modified_voltage_node_analysis(
