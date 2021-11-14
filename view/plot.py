@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 from functools import cache
+
+import numpy as np
+from matplotlib import cm
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
 from model.analysis.evolution import Evolution
 from model.device.utils import largest_component
@@ -231,7 +234,7 @@ def conductance(fig, ax1, plot_data):
 
     # extract time sequence
     t_list = [
-        x * plot_data.delta_t
+        x * plot_data.delta_time
         for x in range(len(plot_data.network_instances))
     ]
 
@@ -241,7 +244,7 @@ def conductance(fig, ax1, plot_data):
             (source, nx.resistance_distance(
                 graph,
                 source,
-                plot_data.grounds | plot_data.loads[0],  # todo
+                [*plot_data.grounds | plot_data.loads][0],  # todo
                 weight='Y',
                 invert_weight=False
             )) for source, _ in inputs
@@ -432,7 +435,7 @@ def animation(fig, ax, plot_data):
     frames_interval = 500
 
     hs = [*plot_data.currents_graphs()]
-    t_list = [i * plot_data.delta_t for i in range(frames_num)]
+    t_list = [i * plot_data.delta_time for i in range(frames_num)]
 
     def update(i):
         plt.cla()
@@ -482,7 +485,7 @@ def animation_kamada_kawai(fig, ax, plot_data):
     frames_interval = 500
 
     hs = [*plot_data.currents_graphs()]
-    t_list = [i * plot_data.delta_t for i in range(frames_num)]
+    t_list = [i * plot_data.delta_time for i in range(frames_num)]
 
     def update(i):
         plt.cla()
@@ -518,3 +521,35 @@ def animation_kamada_kawai(fig, ax, plot_data):
 
     # plt.show()
     anim.save('animation_2.gif', writer=ImageMagickWriter(fps=2))
+
+
+def outputs(_, ax, plot_data):  # todo defined by paolo
+    """Plot the voltage variation on the output nodes"""
+
+    # extract time sequence
+    times = [
+        x * plot_data.delta_time
+        for x in range(len(plot_data.network_instances))
+    ]
+
+    # get sequence of voltage on each output node
+    data = dict([(load, []) for load in plot_data.loads])
+    for graph in [g for g, _ in plot_data.network_instances]:
+        for load in plot_data.loads:
+            data[load].append(graph.nodes[load]["V"])
+
+    __line_graph(ax, times, *data.values())
+
+
+def __line_graph(ax, x, *data):
+    plt.cla()
+
+    colors = iter(['b', 'g', 'r', 'c', 'm', 'y'] * len(data))
+
+    for data_ in data:
+        color = next(colors)
+        ax.plot(x, data_, color=color)
+        ax.tick_params(axis='y', labelcolor=color)
+
+        # instantiate a second axes that shares the same x-axis
+        ax = ax.twinx()
