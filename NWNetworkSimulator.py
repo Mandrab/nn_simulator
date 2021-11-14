@@ -32,7 +32,7 @@ __all__ = [
     # stimulation utilities for the network
     "stimulate", "voltage_initialization",
     # logging utilities & setups
-    "logging", "debug_mode",
+    "logging",
     # plotting utils
     "plot"
 ]
@@ -41,9 +41,3 @@ __LOGGING_FORMAT = '[%(asctime)s %(levelname)s]\t %(message)s'
 
 # define default logging level as INFO and following a standard format
 logging.basicConfig(level=logging.INFO, format=__LOGGING_FORMAT)
-
-
-def debug_mode():
-    """Enable the debug mode in the simulator (i.e., log at DEBUG level)"""
-
-    logging.basicConfig(level=logging.DEBUG, format=__LOGGING_FORMAT)
