@@ -18,9 +18,9 @@ def generate_network(datasheet: Datasheet) -> dict:
         number_of_wires=datasheet.wires_count,
         wire_av_length=datasheet.mean_length,
         wire_dispersion=datasheet.std_length,
-        gennorm_shape=10,
+        general_normal_shape=10,
         centroid_dispersion=datasheet.centroid_dispersion,
-        this_seed=datasheet.seed,
+        seed=datasheet.seed,
         Lx=datasheet.Lx,
         Ly=datasheet.Ly
     )
