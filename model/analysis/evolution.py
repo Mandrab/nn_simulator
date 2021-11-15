@@ -1,7 +1,7 @@
 import networkx as nx
 
 from dataclasses import dataclass, field
-from functools import cache
+from functools import cached_property
 from collections.abc import Iterable
 from networkx import Graph
 from typing import Set, Tuple, List
@@ -37,27 +37,22 @@ class Evolution:
         field(default_factory=list)
 
     def append(self, graph: Graph, stimulus: [(int, float)]):
-        """Add a graph (i.e., network state) to the history"""
+        """
+        Add a graph (i.e., network state) to the history.
+        The graph is copied before being add.
+        """
 
         self.network_instances.append((graph.copy(), stimulus))
 
     def currents_graphs(self, reverse=False) -> Iterable[Graph]:
         """Get currents flow in the graphs. Apply in a lazy way"""
 
-        @cache
-        def _():
-            """
-            Needed for caching: the class is not hashable and then it cannot
-            used as an input parameter/key of the input-result save
-            """
-            graphs = [g for g, _ in self.network_instances]
+        graphs = [g for g, _ in self.network_instances]
 
-            if reverse:
-                graphs = reversed(graphs)
+        if reverse:
+            graphs = reversed(graphs)
 
-            return map(calculate_currents, graphs)
-
-        return _()
+        return map(calculate_currents, graphs)
 
     def information_centrality(self):
         """Return information centrality measure for the network evolution"""
@@ -80,7 +75,25 @@ class Evolution:
         return self.network_instances[-1][0]
 
     @property
-    def inputs(self) -> [(int, float)]:
+    def inputs(self) -> List[Tuple[int, float]]:
         """Return the latest stimulation values"""
 
         return self.network_instances[-1][1]
+
+    @property
+    def sources(self) -> Set[int]:
+        """Return the latest stimulation values"""
+
+        return {s for s, _ in self.network_instances[-1][1]}
+
+    @cached_property
+    def duration(self):
+        """Return the time elapsed between the first and last update"""
+
+        return range(len(self.network_instances))
+
+    @cached_property
+    def update_times(self):
+        """Return the sequence of update times of the simulation"""
+
+        return [x * self.delta_time for x in self.duration]
