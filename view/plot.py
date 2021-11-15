@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
-"""
-@author: milan
-"""
 import collections
 import logging
 import matplotlib.pyplot as plt
 import networkx as nx
 
 from functools import cache
-
-import numpy as np
-from matplotlib import cm
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
 from model.analysis.evolution import Evolution
 from model.device.utils import largest_component
+from networkx import Graph
 from view.plotting import draw_wires, draw_junctions
+from typing import Set, Any
 
 logging.getLogger('matplotlib.font_manager').disabled = True
 logging.getLogger('matplotlib.colorbar').disabled = True
@@ -164,7 +160,7 @@ def largest_connected_component(_, ax, plot_data):
     ax.set_title('Nanowires distribution graph')
 
     graph = largest_component(plot_data.graph)
-    pos = nx.get_node_attributes(graph, 'pos')
+    pos = __nodes_positions(plot_data.graph)
 
     nx.draw_networkx(graph, pos, node_color='r', node_size=20, with_labels=True)
 
@@ -194,11 +190,9 @@ def network_7(_, ax, plot_data):
         for node in a:
             plot_data.graph.nodes[node]['component_color'] = colors[index]
 
-    pos = nx.get_node_attributes(plot_data.graph, 'pos')
-
     nx.draw_networkx(
         plot_data.graph,
-        pos,
+        __nodes_positions(plot_data.graph),
         node_color=[
             plot_data.graph.nodes[node]['component_color']
             for node in plot_data.graph.nodes()
@@ -209,7 +203,7 @@ def network_7(_, ax, plot_data):
 
     nx.draw_networkx_nodes(
         plot_data.graph,
-        pos,
+        __nodes_positions(plot_data.graph),
         nodelist=[*map(lambda v: v[0], plot_data.inputs)],
         # todo makes no sense if input change in time
         node_color='r',
@@ -219,7 +213,7 @@ def network_7(_, ax, plot_data):
 
     nx.draw_networkx_nodes(
         plot_data.graph,
-        pos,
+        __nodes_positions(plot_data.graph),
         nodelist=plot_data.grounds | plot_data.loads,
         node_color='k',
         node_size=300,
@@ -231,12 +225,6 @@ def conductance(fig, ax1, plot_data):
     """Display the max conductivity of a path in the network for each state"""
 
     plt.cla()  # override default axis config
-
-    # extract time sequence
-    t_list = [
-        x * plot_data.delta_time
-        for x in range(len(plot_data.network_instances))
-    ]
 
     # calculate network minimum resistance
     resistances = [
@@ -260,7 +248,7 @@ def conductance(fig, ax1, plot_data):
     ax1.set_xlabel('time (s)')
     ax1.set_ylabel('Input Voltage (V)', color=color)
 
-    ax1.plot(t_list, sources_voltages, color=color)
+    ax1.plot(plot_data.update_times, sources_voltages, color=color)
     ax1.tick_params(axis='y', labelcolor=color)
 
     ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
@@ -269,7 +257,7 @@ def conductance(fig, ax1, plot_data):
     ax2.set_ylabel('Conductance (S)',
                    color=color)  # we already handled the x-label with ax1
 
-    ax2.plot(t_list, conductances, color=color)
+    ax2.plot(plot_data.update_times, conductances, color=color)
     ax2.tick_params(axis='y', labelcolor=color)
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
@@ -282,41 +270,16 @@ def voltage_distribution_map(_, ax, plot_data):
 
     ax.set_title('Nano-wires distribution graph')
 
-    L = next(plot_data.currents_graphs()).copy()
+    graph = next(plot_data.currents_graphs()).copy()
 
-    pos = nx.get_node_attributes(L, 'pos')
-
-    nx.draw_networkx(
-        L,
-        pos,
-        node_size=20,
-        node_color=[L.nodes[n]['V'] for n in L.nodes()],
-        cmap=plt.cm.plasma,  # viridis  #jet #Blues
-        # edge_color = [L[u][v]['Y'] for u,v in L.edges()],
-        # width = 2,
-        # edge_cmap = plt.cm.Reds,
-        # edge_vmin = Y_min,
-        # edge_vmax = Y_max,
-        arrows=False,
-        with_labels=False,
-        font_size=6
-    )
-
-    sources = [s for s, _ in plot_data.network_instances[0][1]]
-    nx.draw_networkx_nodes(
-        L, pos,
-        nodelist=sources,
-        node_color='r',
-        node_size=300,
-        alpha=0.5
-    )
-
-    nx.draw_networkx_nodes(
-        L, pos,
-        nodelist=plot_data.grounds | plot_data.loads,
-        node_color='k',
-        node_size=300,
-        alpha=0.5
+    __draw_network(
+        graph=graph,
+        sources=plot_data.sources,
+        grounds=plot_data.grounds,
+        loads=plot_data.loads,
+        edge_min=plot_data.datasheet.Y_min,
+        edge_max=plot_data.datasheet.Y_max,
+        normal_node_colors=[graph.nodes[n]['V'] for n in graph.nodes()],
     )
 
 
@@ -327,41 +290,16 @@ def conductance_map(_, ax, plot_data):
 
     L = next(plot_data.currents_graphs(reverse=True)).copy()
 
-    pos = nx.get_node_attributes(L, 'pos')
-
-    nx.draw_networkx(
-        L,
-        pos,
-        node_size=20,
-        node_color=[L.nodes[n]['V'] for n in L.nodes()],
-        cmap=plt.cm.Blues,
-        edge_color=[L[u][v]['Y'] for u, v in L.edges()],
-        width=2,
-        edge_cmap=plt.cm.Reds,
-        edge_vmin=plot_data.datasheet.Y_min,
-        edge_vmax=plot_data.datasheet.Y_max,
-        arrows=False,
-        with_labels=False,
-        font_size=6
-    )
-
-    sources = [s for s, _ in plot_data.network_instances[-1][1]]
-    nx.draw_networkx_nodes(
-        L,
-        pos,
-        nodelist=sources,
-        node_color='r',
-        node_size=300,
-        alpha=0.5
-    )
-
-    nx.draw_networkx_nodes(
-        L,
-        pos,
-        nodelist=plot_data.grounds | plot_data.loads,
-        node_color='k',
-        node_size=300,
-        alpha=0.5
+    __draw_network(
+        next(plot_data.currents_graphs(reverse=True)),
+        plot_data.sources,
+        plot_data.grounds,
+        plot_data.loads,
+        plot_data.datasheet.Y_min,
+        plot_data.datasheet.Y_max,
+        20,
+        [L.nodes[n]['V'] for n in L.nodes()],
+        [L[u][v]['Y'] for u, v in L.edges()]
     )
 
 
@@ -370,7 +308,7 @@ def information_centrality_map(_, ax, plot_data):
 
     ax.set_title('Nano-wires distribution graph')
 
-    L = next(plot_data.currents_graphs(reverse=True)).copy()
+    L = next(plot_data.currents_graphs(reverse=True)).copy()  # todo
 
     # scaling information centrality to node sizes
     information_centralities = [*plot_data.information_centrality()]
@@ -387,43 +325,16 @@ def information_centrality_map(_, ax, plot_data):
 
     centrality_normalized = [(m * v) + b for v in information_centralities[-1]]
 
-    pos = nx.get_node_attributes(L, 'pos')
-
-    nx.draw_networkx(
-        L,
-        pos,
-        node_size=centrality_normalized,
-        node_color=[
-            L.nodes[n]['information_centrality']
-            for n in L.nodes()
-        ],
-        cmap=plt.cm.cool,
-        edge_color=[L[u][v]['Y'] for u, v in L.edges()],
-        width=2,
-        edge_cmap=plt.cm.Reds,
-        edge_vmin=plot_data.datasheet.Y_min,
-        edge_vmax=plot_data.datasheet.Y_max,
-        arrows=False,
-        with_labels=False, font_size=6
-    )
-
-    sources = [s for s, _ in plot_data.network_instances[-1][1]]
-    nx.draw_networkx_nodes(
-        L,
-        pos,
-        nodelist=sources,
-        node_color='r',
-        node_size=300,
-        alpha=0.5
-    )
-
-    nx.draw_networkx_nodes(
-        L,
-        pos,
-        nodelist=plot_data.grounds | plot_data.loads,
-        node_color='k',
-        node_size=300,
-        alpha=0.5
+    __draw_network(
+        plot_data.graph,
+        plot_data.sources,
+        plot_data.grounds,
+        plot_data.loads,
+        plot_data.datasheet.Y_min,
+        plot_data.datasheet.Y_max,
+        centrality_normalized,
+        [L.nodes[n]['information_centrality'] for n in L.nodes],
+        [L[u][v]['Y'] for u, v in L.edges()]
     )
 
 
@@ -432,19 +343,14 @@ def animation(fig, ax, plot_data):
 
     frames_num = len(plot_data.network_instances) - 1
 
-    frames_interval = 500
-
     hs = [*plot_data.currents_graphs()]
-    t_list = [i * plot_data.delta_time for i in range(frames_num)]
 
     def update(i):
         plt.cla()
 
-        pos = nx.get_node_attributes(hs[i], 'pos')
-
         nx.draw_networkx(
             hs[i],
-            pos,
+            __nodes_positions(hs[i]),
             # NODES
             node_size=60,
             node_color=[hs[i].nodes[n]['V'] for n in hs[i].nodes()],
@@ -461,14 +367,14 @@ def animation(fig, ax, plot_data):
             font_size=6
         )
 
-        ax.set_title("t = {}".format(round(t_list[i], 1)))
+        ax.set_title("t = {}".format(round(plot_data.update_times[i], 1)))
 
     # animation
     anim = FuncAnimation(
         fig,
         update,
         frames=frames_num,
-        interval=frames_interval,
+        interval=500,
         blit=False,
         repeat=True
     )
@@ -526,19 +432,13 @@ def animation_kamada_kawai(fig, ax, plot_data):
 def outputs(_, ax, plot_data):  # todo defined by paolo
     """Plot the voltage variation on the output nodes"""
 
-    # extract time sequence
-    times = [
-        x * plot_data.delta_time
-        for x in range(len(plot_data.network_instances))
-    ]
-
     # get sequence of voltage on each output node
     data = dict([(load, []) for load in plot_data.loads])
     for graph in [g for g, _ in plot_data.network_instances]:
         for load in plot_data.loads:
             data[load].append(graph.nodes[load]["V"])
 
-    __line_graph(ax, times, *data.values())
+    __line_graph(ax, plot_data.update_times, *data.values())
 
 
 def __line_graph(ax, x, *data):
@@ -553,3 +453,46 @@ def __line_graph(ax, x, *data):
 
         # instantiate a second axes that shares the same x-axis
         ax = ax.twinx()
+
+
+def __draw_network(
+        graph: Graph,
+        sources: Set[int],
+        grounds: Set[int],
+        loads: Set[int],
+        edge_min: float = None,
+        edge_max: float = None,
+        normal_sizes: Any =20,
+        normal_node_colors: Any = '#1f78b4',
+        normal_edge_colors: Any = 'k'
+):
+    nx.draw_networkx(
+        graph,
+        __nodes_positions(graph),
+        node_size=normal_sizes,
+        node_color=normal_node_colors,
+        cmap=plt.cm.cool,
+        edge_color=normal_edge_colors,
+        width=2,
+        edge_cmap=plt.cm.Reds,
+        edge_vmin=edge_min,
+        edge_vmax=edge_max,
+        arrows=False,
+        with_labels=False,
+        font_size=6
+    )
+
+    for data, color in zip([sources, grounds, loads], ['r', 'k', 'y']):
+        nx.draw_networkx_nodes(
+            graph,
+            __nodes_positions(graph),
+            nodelist=data,
+            node_color=color,
+            node_size=300,
+            alpha=0.5
+        )
+
+
+@cache
+def __nodes_positions(graph: Graph):
+    return nx.get_node_attributes(graph, 'pos')
