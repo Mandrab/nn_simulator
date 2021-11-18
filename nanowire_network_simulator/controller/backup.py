@@ -1,12 +1,11 @@
 import dataclasses
 import json
 import logging
-
 import networkx as nx
 import numpy as np
 
-from model.device.datasheet.Datasheet import Datasheet
-from model.device.datasheet.factory import from_dict
+from ..model.device import Datasheet
+from ..model.device.datasheet import factory
 from networkx import Graph
 from os.path import exists
 
@@ -71,7 +70,7 @@ def read(
     # load and convert the json to a datasheet
     with open(datasheet_file, 'r') as file:
         text = json.load(file)
-        datasheet = from_dict(text)
+        datasheet = factory.from_dict(text)
 
     # load and convert the json to a graph
     with open(graph_file, 'r') as file:

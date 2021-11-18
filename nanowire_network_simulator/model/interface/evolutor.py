@@ -27,10 +27,10 @@ def minimum_distance_selection(
         viable_nodes = {*graph.nodes} - {ground}
 
         # find nodes 'distance' distant from the output
-        def neighbours(node: int, distance: int) -> Set[int]:
+        def neighbours(node: int, decreased_distance: int) -> Set[int]:
 
             # base condition: distance 0 is empty set
-            if distance <= 0:
+            if decreased_distance <= 0:
                 return set()
 
             # take distance 1 neighbours
@@ -38,7 +38,7 @@ def minimum_distance_selection(
 
             # take farther neighbours (neighbours of neighbours)
             neighbours_neighbours = [
-                neighbours(node, distance - 1)
+                neighbours(node, decreased_distance - 1)
                 for node in adjacent_neighbours
             ]
 
@@ -66,8 +66,7 @@ def mutate(
         probability: float,
         minimum_mutants: int,
         maximum_mutants: int,
-        viable_node_selection: Callable[[Graph, List[int], int], Set[int]] =
-            non_ground_selection
+        viable_node_selection: Callable[[Graph, List[int], int], Set[int]]
 ) -> List[int]:
     """
     Mutate the input connections of the network in a random way.

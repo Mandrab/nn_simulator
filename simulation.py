@@ -1,7 +1,7 @@
 import progressbar
 import random
 
-from NWNetworkSimulator import *
+from nanowire_network_simulator import *
 
 ################################################################################
 # SIMULATION SETUP
@@ -69,7 +69,7 @@ evolution = Evolution(
     wires_dict,
     delta_t,
     grounds,
-    {n for n, r in loads}
+    loads
 )
 evolution.append(graph, stimulus)
 
@@ -97,6 +97,6 @@ progressbar.finish()
 # plot.plot(evolution, plot.voltage_distribution_map)
 # plot.plot(evolution, plot.conductance_map)
 # plot.plot(evolution, plot.information_centrality_map)
+# plot.plot(evolution, plot.outputs)
 # plot.plot(evolution, plot.animation)
 # plot.plot(evolution, plot.animation_kamada_kawai)
-# plot.plot(evolution, plot.outputs)

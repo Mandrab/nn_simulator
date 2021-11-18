@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 import random
 import networkx as nx
 
@@ -30,7 +31,7 @@ def largest_component(graph: Graph, relabel: bool = False) -> Graph:
     return graph
 
 
-def define_grid_graph(x_size: int, y_size: int, config=lambda _: _):
+def define_grid_graph(x_size: int, y_size: int, config=lambda _: _) -> Graph:
     """Define a graph"""
 
     graph = config(grid_graph(dim=[x_size, y_size]))
@@ -43,7 +44,7 @@ def define_grid_graph(x_size: int, y_size: int, config=lambda _: _):
     )
 
 
-def define_grid_graph_2(x_size: int, y_size: int):
+def define_grid_graph_2(x_size: int, y_size: int) -> Graph:
     """Graph definition with random diagonals"""
 
     def init(graph):

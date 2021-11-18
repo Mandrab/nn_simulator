@@ -6,17 +6,17 @@ import networkx as nx
 
 from functools import cache
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
-from model.analysis.evolution import Evolution
-from model.device.utils import largest_component
+from ..model.analysis.evolution import Evolution
+from ..model.device.utils import largest_component
 from networkx import Graph
-from view.plotting import draw_wires, draw_junctions
-from typing import Set, Any
+from .plotting import draw_wires, draw_junctions
+from typing import Set, Any, Callable
 
 logging.getLogger('matplotlib.font_manager').disabled = True
 logging.getLogger('matplotlib.colorbar').disabled = True
 
 
-def plot(data: Evolution, filler):
+def plot(data: Evolution, filler: Callable[[Any, Any, Evolution], None]):
     """Standard plotting setup"""
 
     fig, ax = plt.subplots()
@@ -45,16 +45,14 @@ def plot(data: Evolution, filler):
     plt.show()
 
 
-# %% ############################# - PLOTS - ###################################
-
-def adj_matrix(_0, _1, plot_data):
+def adj_matrix(_0, _1, plot_data: Evolution):
     """Plot adjacency matrix"""
 
     plt.imshow(plot_data.wires_dict['adj_matrix'], cmap='binary')
     plt.colorbar()
 
 
-def network(_, ax, plot_data):
+def network(_, ax, plot_data: Evolution):
     """Plot nano-wires distribution from wires_dict (network)"""
 
     ax.set_title('Nano-wires distribution')
@@ -63,7 +61,7 @@ def network(_, ax, plot_data):
     draw_junctions(ax, plot_data.wires_dict)
 
 
-def graph(_, ax, plot_data):
+def graph(_, ax, plot_data: Evolution):
     """Plot nano-wires distribution from graph"""
 
     ax.set_title('Nano-wires distribution graph')
@@ -77,7 +75,7 @@ def graph(_, ax, plot_data):
     )
 
 
-def kamada_kawai_graph(_, ax, plot_data):
+def kamada_kawai_graph(_, ax, plot_data: Evolution):
     """Plot nano-wires distribution from graph (kamada-style)"""
 
     plt.cla()  # override default axis config
@@ -92,7 +90,7 @@ def kamada_kawai_graph(_, ax, plot_data):
     )
 
 
-def degree_of_nodes(_, ax, plot_data):
+def degree_of_nodes(_, ax, plot_data: Evolution):
     """Print a diagram representing, for each degree, its quantity"""
 
     plt.cla()  # override default axis config
@@ -114,13 +112,13 @@ def degree_of_nodes(_, ax, plot_data):
 
 
 @cache
-def __list_connected_components(graph):
+def __list_connected_components(graph: Graph):
     """Return sorted list of connected components"""
 
     return sorted(nx.connected_components(graph), key=len, reverse=True)
 
 
-def highlight_connected_components(_, ax, plot_data):
+def highlight_connected_components(_, ax, plot_data: Evolution):
     """Print connected components in the network (different colors for each)"""
 
     ax.set_title('Connected components')
@@ -154,7 +152,7 @@ def highlight_connected_components(_, ax, plot_data):
     )
 
 
-def largest_connected_component(_, ax, plot_data):
+def largest_connected_component(_, ax, plot_data: Evolution):
     """Plot only the largest connected component"""
 
     ax.set_title('Nanowires distribution graph')
@@ -165,7 +163,7 @@ def largest_connected_component(_, ax, plot_data):
     nx.draw_networkx(graph, pos, node_color='r', node_size=20, with_labels=True)
 
 
-def network_7(_, ax, plot_data):
+def network_7(_, ax, plot_data: Evolution):
     """Print connected components in the network (different colors for each)"""
     # todo difference from 'highlight_connected_components'?
 
@@ -214,14 +212,14 @@ def network_7(_, ax, plot_data):
     nx.draw_networkx_nodes(
         plot_data.graph,
         __nodes_positions(plot_data.graph),
-        nodelist=plot_data.grounds | plot_data.loads,
+        nodelist=plot_data.grounds | {n for n, _ in plot_data.loads},
         node_color='k',
         node_size=300,
         alpha=0.5
     )
 
 
-def conductance(fig, ax1, plot_data):
+def conductance(fig, ax1, plot_data: Evolution):
     """Display the max conductivity of a path in the network for each state"""
 
     plt.cla()  # override default axis config
@@ -232,7 +230,7 @@ def conductance(fig, ax1, plot_data):
             (source, nx.resistance_distance(
                 graph,
                 source,
-                [*plot_data.grounds | plot_data.loads][0],  # todo
+                [*plot_data.grounds | {n for n, _ in plot_data.loads}][0],  # todo
                 weight='Y',
                 invert_weight=False
             )) for source, _ in inputs
@@ -265,36 +263,36 @@ def conductance(fig, ax1, plot_data):
     plt.title('Network conductance')
 
 
-def voltage_distribution_map(_, ax, plot_data):
+def voltage_distribution_map(_, ax, plot_data: Evolution):
     """Plot the voltage distribution (intensity) of the initial graph"""  # todo
 
     ax.set_title('Nano-wires distribution graph')
 
-    graph = next(plot_data.currents_graphs()).copy()
+    graph = next(iter(plot_data.currents_graphs())).copy()
 
     __draw_network(
         graph=graph,
         sources=plot_data.sources,
         grounds=plot_data.grounds,
-        loads=plot_data.loads,
+        loads={node for node, _ in plot_data.loads},
         edge_min=plot_data.datasheet.Y_min,
         edge_max=plot_data.datasheet.Y_max,
         normal_node_colors=[graph.nodes[n]['V'] for n in graph.nodes()],
     )
 
 
-def conductance_map(_, ax, plot_data):
+def conductance_map(_, ax, plot_data: Evolution):
     """Plot the conductance distribution of the final graph"""  # todo
 
     ax.set_title('Nano-wires distribution graph')
 
-    L = next(plot_data.currents_graphs(reverse=True)).copy()
+    L = next(iter(plot_data.currents_graphs(reverse=True))).copy()
 
     __draw_network(
-        next(plot_data.currents_graphs(reverse=True)),
+        L,
         plot_data.sources,
         plot_data.grounds,
-        plot_data.loads,
+        {node for node, _ in plot_data.loads},
         plot_data.datasheet.Y_min,
         plot_data.datasheet.Y_max,
         20,
@@ -303,12 +301,10 @@ def conductance_map(_, ax, plot_data):
     )
 
 
-def information_centrality_map(_, ax, plot_data):
+def information_centrality_map(_, ax, plot_data: Evolution):
     """Plot the information centrality of the final graph"""  # todo
 
     ax.set_title('Nano-wires distribution graph')
-
-    L = next(plot_data.currents_graphs(reverse=True)).copy()  # todo
 
     # scaling information centrality to node sizes
     information_centralities = [*plot_data.information_centrality()]
@@ -329,7 +325,7 @@ def information_centrality_map(_, ax, plot_data):
         plot_data.graph,
         plot_data.sources,
         plot_data.grounds,
-        plot_data.loads,
+        {node for node, _ in plot_data.loads},
         plot_data.datasheet.Y_min,
         plot_data.datasheet.Y_max,
         centrality_normalized,
@@ -338,7 +334,7 @@ def information_centrality_map(_, ax, plot_data):
     )
 
 
-def animation(fig, ax, plot_data):
+def animation(fig, ax, plot_data: Evolution):
     """Plot animated conductance evolution"""
 
     frames_num = len(plot_data.network_instances) - 1
@@ -354,13 +350,13 @@ def animation(fig, ax, plot_data):
             # NODES
             node_size=60,
             node_color=[hs[i].nodes[n]['V'] for n in hs[i].nodes()],
-            cmap=plt.cm.Blues,
+            cmap=plt.cm.get_cmap('Blues'),
             vmin=-5,
             vmax=10,
             # EDGES
             width=4,
             edge_color=[hs[i][u][v]['Y'] for u, v in hs[i].edges()],
-            edge_cmap=plt.cm.Reds,
+            edge_cmap=plt.cm.get_cmap('Reds'),
             edge_vmin=plot_data.datasheet.Y_min,
             edge_vmax=plot_data.datasheet.Y_max,
             with_labels=False,  # set TRUE to see node numbers
@@ -383,7 +379,7 @@ def animation(fig, ax, plot_data):
     anim.save('animation_1.gif', writer='imagemagick')
 
 
-def animation_kamada_kawai(fig, ax, plot_data):
+def animation_kamada_kawai(fig, ax, plot_data: Evolution):
     """Plot animated conductance evolution in kamada kawai style"""
 
     frames_num = len(plot_data.network_instances) - 1
@@ -401,13 +397,13 @@ def animation_kamada_kawai(fig, ax, plot_data):
             # NODES
             node_size=60,
             node_color=[hs[i].nodes[n]['V'] for n in hs[i].nodes()],
-            cmap=plt.cm.Blues,
+            cmap=plt.cm.get_cmap('Blues'),
             vmin=-5,
             vmax=10,
             # EDGES
             width=4,
             edge_color=[hs[i][u][v]['Y'] for u, v in hs[i].edges()],
-            edge_cmap=plt.cm.Reds,
+            edge_cmap=plt.cm.get_cmap('Reds'),
             edge_vmin=plot_data.datasheet.Y_min,
             edge_vmax=plot_data.datasheet.Y_max,
             with_labels=False,  # Set TRUE to see node numbers
@@ -429,13 +425,13 @@ def animation_kamada_kawai(fig, ax, plot_data):
     anim.save('animation_2.gif', writer=ImageMagickWriter(fps=2))
 
 
-def outputs(_, ax, plot_data):  # todo defined by paolo
+def outputs(_, ax, plot_data: Evolution):  # todo defined by paolo
     """Plot the voltage variation on the output nodes"""
 
     # get sequence of voltage on each output node
-    data = dict([(load, []) for load in plot_data.loads])
+    data = dict([(load, []) for load, _ in plot_data.loads])
     for graph in [g for g, _ in plot_data.network_instances]:
-        for load in plot_data.loads:
+        for load, _ in plot_data.loads:
             data[load].append(graph.nodes[load]["V"])
 
     __line_graph(ax, plot_data.update_times, *data.values())
@@ -471,10 +467,10 @@ def __draw_network(
         __nodes_positions(graph),
         node_size=normal_sizes,
         node_color=normal_node_colors,
-        cmap=plt.cm.cool,
+        cmap=plt.cm.get_cmap('cool'),
         edge_color=normal_edge_colors,
         width=2,
-        edge_cmap=plt.cm.Reds,
+        edge_cmap=plt.cm.get_cmap('Reds'),
         edge_vmin=edge_min,
         edge_vmax=edge_max,
         arrows=False,

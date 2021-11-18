@@ -3,10 +3,10 @@ import networkx as nx
 from dataclasses import dataclass, field
 from functools import cached_property
 from collections.abc import Iterable
+from nanowire_network_simulator.model.device import Datasheet
 from networkx import Graph
 from typing import Set, Tuple, List
-from model.analysis.utils import calculate_currents
-from model.device.datasheet.Datasheet import Datasheet
+from .utils import calculate_currents
 
 
 @dataclass
@@ -44,7 +44,7 @@ class Evolution:
 
         self.network_instances.append((graph.copy(), stimulus))
 
-    def currents_graphs(self, reverse=False) -> Iterable[Graph]:
+    def currents_graphs(self, reverse: bool = False) -> Iterable[Graph]:
         """Get currents flow in the graphs. Apply in a lazy way"""
 
         graphs = [g for g, _ in self.network_instances]
@@ -54,19 +54,26 @@ class Evolution:
 
         return map(calculate_currents, graphs)
 
-    def information_centrality(self):
+    def information_centrality(self, reverse: bool = False) -> Iterable[Graph]:
         """Return information centrality measure for the network evolution"""
 
-        graphs = [(g, calculate_currents(g)) for g, _ in self.network_instances]
+        graphs = [g for g, _ in self.network_instances]
 
-        for m, h in graphs:
+        if reverse:
+            graphs = reversed(graphs)
+
+        def _(graph: Graph):
+            currents_graph = calculate_currents(graph)
+
             nx.set_node_attributes(
-                h,
-                nx.information_centrality(m, weight='Y'),
+                currents_graph,
+                nx.information_centrality(graph, weight='Y'),
                 'information_centrality'
             )
 
-        return [h for m, h in graphs]
+            return currents_graph
+
+        return map(_, graphs)
 
     @property
     def graph(self) -> Graph:

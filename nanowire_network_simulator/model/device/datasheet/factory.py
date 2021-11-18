@@ -1,4 +1,4 @@
-from model.device.datasheet.Datasheet import Datasheet
+from .Datasheet import Datasheet
 
 
 def from_dict(dictionary: dict) -> Datasheet:

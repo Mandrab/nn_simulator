@@ -1,11 +1,11 @@
 import logging
 import networkx as nx
 
+from nanowire_network_simulator.model import wires
 from networkx import Graph
-
-from model import wires
-from model.device.datasheet.Datasheet import Datasheet
-from model.device.utils import largest_component
+from . import Datasheet
+from typing import Tuple
+from .utils import largest_component
 
 
 def generate_network(datasheet: Datasheet) -> dict:
@@ -68,7 +68,7 @@ def generate_graph(datasheet: Datasheet) -> Graph:
     return get_graph(generate_network(datasheet))
 
 
-def minimum_viable_network(datasheet: Datasheet) -> (Graph, dict):
+def minimum_viable_network(datasheet: Datasheet) -> Tuple[Graph, dict]:
     """
     Produce the network specified by the datasheet.
     To improve speed, reduce the network to the largest connected component.

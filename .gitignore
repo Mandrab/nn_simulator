@@ -1,6 +1,10 @@
+.eggs
 .idea
 .vscode
 *.dat
-!res/test/expected/*.dat
 *.gif
 *.pyc
+build
+dist
+nanowire_network_simulator.egg-info
+!tests/**/*.dat

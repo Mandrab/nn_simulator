@@ -6,22 +6,11 @@ Created on Wed Nov 27 15:09:29 2019
 @author: Gianluca
 """
 
-import os
-import math
-import random
-import networkx as nx
-from networkx import grid_graph
-import collections
-import numpy as np
-
 import matplotlib.pyplot as plt
+import networkx as nx
+
 from matplotlib.lines import Line2D
-from matplotlib.patches import Rectangle
 
-
-
-
-###############################################################################
 
 def draw_wires(ax, wires_dict):
     """
@@ -56,7 +45,6 @@ def draw_wires(ax, wires_dict):
 
     return ax
 
-###############################################################################
 
 def draw_junctions(ax, wires_dict):
     """
@@ -70,9 +58,6 @@ def draw_junctions(ax, wires_dict):
         for l in line: 
             ax.add_line(l)
     return ax
-
-
-###############################################################################
 
 
 def plot_0(H):
@@ -167,7 +152,7 @@ def plot_3(H):
         H.node[n]['Vrounded'] = round(H.node[n]['V'],2)
         
     Vlabel = nx.get_node_attributes(H,'Vrounded')
-    Ilabel = nx.get_edge_attributes(H,'Irounded')
+    Ilabel = nx.get_edge_attributes(H,'I_rounded')
     
     node_colors_2 = [[] for x in range(0,H.number_of_nodes())]                        #add color to nodes
 
@@ -203,7 +188,7 @@ def plot_4(H):
         H.node[n]['Vrounded'] = round(H.node[n]['V'],2)
         
     Vlabel = nx.get_node_attributes(H,'Vrounded')
-    Ilabel = nx.get_edge_attributes(H,'Irounded')
+    Ilabel = nx.get_edge_attributes(H,'I_rounded')
     
     
     #plot with labels

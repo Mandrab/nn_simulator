@@ -4,7 +4,7 @@
 This module generates a distribution of nano-wires on 2D domain, akin to the
 where atomic switch networks are grown. 
 The basic process consists in choosing a random center point for the wire in 
-the unit square and then chooses a random angle \theta \in (0,\pi) as the 
+the unit square and then chooses a random angle \theta \in (0,\pi) as the
 wire's orientation.
 @author: Paula Sanz-Leon <paula.sanz-leon@sydney.edu.au>
 @author: Miro Astore <miro.astore@sydney.edu.au>
@@ -13,11 +13,10 @@ wire's orientation.
 """
 
 import logging
-from itertools import combinations
-
 import networkx as nx
 import numpy as np
 
+from itertools import combinations
 from scipy.spatial.distance import cdist
 
 
@@ -28,8 +27,8 @@ def generate_wires_distribution(
         centroid_dispersion: float = 1200.0,
         general_normal_shape: int = 5,
         Lx: int = 3e3,
-        Ly: int =3e3,
-        seed: int =42
+        Ly: int = 3e3,
+        seed: int = 42
 ) -> dict:
     """
     Drops nano-wires on the device of sides Lx, Ly. 
@@ -134,9 +133,7 @@ def generate_dist_lengths(number_of_wires, wire_av_length, wire_dispersion):
 
     wire_lengths = np.random.normal(mu, sigma, int(number_of_wires))
 
-    i = 0
-
-    for i in range(0, len(wire_lengths)):
+    for i in range(len(wire_lengths)):
         while wire_lengths[i] < 0:
             wire_lengths[i] = np.random.normal(mu, sigma, 1)
 
@@ -352,17 +349,16 @@ def detect_junctions(wires_dict):
     xi, yi, edge_list = [], [], []
     for first, second in combinations(range(wires_dict['number_of_wires']), 2):
 
-        xa, ya = wires_dict['xa'][first], wires_dict['ya'][first]
-        xb, yb = wires_dict['xb'][first], wires_dict['yb'][first]
+        def points(wire): return (
+            wires_dict['xa'][wire], wires_dict['ya'][wire],
+            wires_dict['xb'][wire], wires_dict['yb'][wire]
+        )
 
-        p0 = np.array([xa, ya])
-        p1 = np.array([xb, yb])
+        xa, ya, xb, yb = points(first)
+        p0, p1 = np.array([xa, ya]), np.array([xb, yb])
 
-        xa, ya = wires_dict['xa'][second], wires_dict['ya'][second]
-        xb, yb = wires_dict['xb'][second], wires_dict['yb'][second]
-
-        p2 = np.array([xa, ya])
-        p3 = np.array([xb, yb])
+        xa, ya, xb, yb = points(second)
+        p2, p3 = np.array([xa, ya]), np.array([xb, yb])
 
         # find junctions
         J = find_segment_intersection(p0, p1, p2, p3)
