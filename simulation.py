@@ -74,7 +74,7 @@ evolution = Evolution(
 evolution.append(graph, stimulus)
 
 # growth over time
-for i in range(1, steps):
+for i in range(steps):
     stimulate(graph, default, delta_t, stimulations[i], [*loads], grounds)
     evolution.append(graph, stimulations[i])
     progressbar.update(i+1)
