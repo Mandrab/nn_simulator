@@ -27,7 +27,8 @@ def save(
     logging.info("Saving graph to file")
 
     # remove a saved instance of the graph from the wires-dict
-    del wires['G']
+    if 'G' in wires:
+        del wires['G']
 
     # convert wires dict to correct format
     wires = dict([
