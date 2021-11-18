@@ -13,4 +13,4 @@ activate_env:
 .PHONY: clear
 
 clear:
-	rm -rf dist
+	rm -rf build dist .eggs
