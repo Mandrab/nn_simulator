@@ -1,6 +1,5 @@
 import json
 import networkx as nx
-import progressbar
 
 from collections.abc import Iterable
 from nanowire_network_simulator import *
@@ -55,7 +54,7 @@ def test_original_behaviour():
     wires_dict = generate_network(default)
     graph = get_graph(wires_dict)
 
-    expected = import_graph("res/test/expected/creation.dat")
+    expected = import_graph("creation.dat")
     are_equal(graph, expected)
     logging.info("TEST: created graphs are equals")
 
@@ -72,11 +71,11 @@ def test_original_behaviour():
     grounds = {mapping[g] for g in grounds}
     sources = {mapping[s] for s in sources}
 
-    expected = import_graph("res/test/expected/simplification.dat")
+    expected = import_graph("simplification.dat")
     are_equal(graph, expected)
     logging.info("TEST: simplified graphs are equals")
 
-    ################################################################################
+    ############################################################################
     # ELECTRICAL STIMULATION
 
     logging.info('Electrical stimulation of the network')
@@ -96,26 +95,21 @@ def test_original_behaviour():
         for i in range(steps)
     ]
 
-    # setup progressbar for print progress
-    progressbar = progressbar.ProgressBar(max_value=steps)
-
     # growth of the conductive path
     logging.info('Growth of the conductive path')
 
     # initialize network
     initialize_graph_attributes(graph, sources, grounds, default.Y_min)
-    stimulus = voltage_initialization(graph, sources, grounds)
+    voltage_initialization(graph, sources, grounds)
 
-    expected = import_graph("res/test/expected/initialization.dat")
+    expected = import_graph("initialization.dat")
     are_equal(graph, expected)
     logging.info("TEST: initialized graphs are equals")
 
     # growth over time
-    for i in range(1, steps):
+    for i in range(steps):
         stimulate(graph, default, delta_t, stimulations[i], [], grounds)
-        progressbar.update(i+1)
-    progressbar.finish()
 
-    expected = import_graph("res/test/expected/stimulation.dat")
+    expected = import_graph("stimulation.dat")
     are_equal(graph, expected)
     logging.info("TEST: stimulated graphs are equals")
