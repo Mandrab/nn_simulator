@@ -1,6 +1,7 @@
 import math
 import numpy as np
 
+from itertools import groupby
 from networkx import Graph
 from typing import List, Tuple, Set
 from .device import Datasheet
@@ -48,6 +49,12 @@ def stimulate(
         connect(graph, output, resistance)
         for output, resistance in outputs
     }
+
+    # if more inputs point to the same node, take the one with highest voltage
+    inputs = [
+        (k, max([v[1] for v in vs]))
+        for k, vs in groupby(sorted(inputs), lambda x: x[0])
+    ]
 
     # update voltage values of the nodes of the system after the stimulation
     modified_voltage_node_analysis(graph, inputs, grounds | new_grounds)
