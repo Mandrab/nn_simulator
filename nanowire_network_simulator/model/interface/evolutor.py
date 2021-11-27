@@ -12,7 +12,7 @@ def non_ground_selection(graph: Graph, _: List[int], ground: int) -> Set[int]:
 
 
 def minimum_distance_selection(
-        outputs: List[int],
+        outputs: Set[int],
         distance: int
 ) -> Callable[[Graph, List[int], int], Set[int]]:
     """
@@ -54,7 +54,7 @@ def minimum_distance_selection(
         neighbours = [neighbours(output, distance) for output in outputs]
         neighbours = reduce(lambda f, s: f | s, neighbours)
 
-        return viable_nodes - {*outputs} - neighbours
+        return viable_nodes - outputs - neighbours
 
     return _
 
