@@ -13,12 +13,15 @@ def non_ground_selection(graph: Graph, _: List[int], ground: int) -> Set[int]:
 
 def minimum_distance_selection(
         outputs: Set[int],
-        distance: int
+        distance: int,
+        negate: bool = False
 ) -> Callable[[Graph, List[int], int], Set[int]]:
     """
-    Returns a function the viable nodes selection for the mutation.
+    Returns a function for the viable nodes selection for the mutation.
     Non-ground nodes and nodes that are 'distance' step near to an output node
     are not selected.
+    If 'negate' is True, the function is `negated` and the returned nodes
+    are the grounds, outputs and neighbor ones.
     """
 
     def _(graph: Graph, _: List[int], ground: int) -> Set[int]:
@@ -54,6 +57,8 @@ def minimum_distance_selection(
         neighbours = [neighbours(output, distance) for output in outputs]
         neighbours = reduce(lambda f, s: f | s, neighbours)
 
+        if negate:
+            return {*outputs} | neighbours | {ground}
         return viable_nodes - outputs - neighbours
 
     return _
