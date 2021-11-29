@@ -73,6 +73,7 @@ def mutate(
     Each source can change, with a fixed probability, between the non-ground
     nodes. Multiple sources can insist on the same node.
     Maximum_mutants must be bigger or equal than minimum_mutants.
+    In case no viable node exists, the returned value will be unchanged.
     """
 
     # determine if a node should mutate or not
@@ -111,9 +112,9 @@ def mutate(
     viable_nodes = viable_node_selection(graph, sources, ground)
 
     # if source change, take a random node != from itself and the ground
-    # if source does not change return it
+    # if source does not change or if there are not viable nodes, return it
     return [
-        [*viable_nodes - {source}][random.randrange(len(viable_nodes) - 1)]
-        if changes[idx] else source
-        for idx, source in enumerate(sources)
+        [*viable_nodes - {s}][random.randrange(len(viable_nodes - {s}))]
+        if changes[i] and len(viable_nodes - {s}) > 0 else s
+        for i, s in enumerate(sources)
     ]
