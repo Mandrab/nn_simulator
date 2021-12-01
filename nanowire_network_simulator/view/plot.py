@@ -278,6 +278,7 @@ def voltage_distribution_map(_, ax, plot_data: Evolution):
         edge_min=plot_data.datasheet.Y_min,
         edge_max=plot_data.datasheet.Y_max,
         normal_node_colors=[graph.nodes[n]['V'] for n in graph.nodes()],
+        ax=ax,
     )
 
 
@@ -297,7 +298,8 @@ def conductance_map(_, ax, plot_data: Evolution):
         plot_data.datasheet.Y_max,
         20,
         [L.nodes[n]['V'] for n in L.nodes()],
-        [L[u][v]['Y'] for u, v in L.edges()]
+        [L[u][v]['Y'] for u, v in L.edges()],
+        ax
     )
 
 
@@ -330,7 +332,8 @@ def information_centrality_map(_, ax, plot_data: Evolution):
         plot_data.datasheet.Y_max,
         centrality_normalized,
         [L.nodes[n]['information_centrality'] for n in L.nodes],
-        [L[u][v]['Y'] for u, v in L.edges()]
+        [L[u][v]['Y'] for u, v in L.edges()],
+        ax
     )
 
 
@@ -460,8 +463,13 @@ def __draw_network(
         edge_max: float = None,
         normal_sizes: Any =20,
         normal_node_colors: Any = '#1f78b4',
-        normal_edge_colors: Any = 'k'
+        normal_edge_colors: Any = 'k',
+        ax: Any = None,
 ):
+    options = {'ax': ax}
+    if ax is None:
+        del options['ax']
+
     nx.draw_networkx(
         graph,
         __nodes_positions(graph),
@@ -475,7 +483,8 @@ def __draw_network(
         edge_vmax=edge_max,
         arrows=False,
         with_labels=False,
-        font_size=6
+        font_size=6,
+        **options
     )
 
     for data, color in zip([sources, grounds, loads], ['r', 'k', 'y']):
@@ -485,7 +494,8 @@ def __draw_network(
             nodelist=data,
             node_color=color,
             node_size=300,
-            alpha=0.5
+            alpha=0.5,
+            **options
         )
 
 
