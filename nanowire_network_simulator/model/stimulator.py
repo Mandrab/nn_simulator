@@ -1,7 +1,7 @@
-import math
 import numpy as np
 
 from itertools import groupby
+from math import exp
 from networkx import Graph
 from typing import List, Tuple, Set
 from .device import Datasheet
@@ -71,19 +71,12 @@ def update_edge_weights(graph: Graph, datasheet: Datasheet, delta_time: float):
         edge = graph[u][v]
 
         edge['deltaV'] = abs(graph.nodes[u]['V'] - graph.nodes[v]['V'])
-        edge['kp'] = datasheet.kp0 * math.exp(datasheet.eta_p * edge['deltaV'])
-        edge['kd'] = datasheet.kd0 * math.exp(-datasheet.eta_d * edge['deltaV'])
-        edge['g'] = (
-                edge['kp'] / (edge['kp'] + edge['kd'])
-            ) * (
-                1 - (
-                    1 - (1 + (edge['kd'] / edge['kp']) * edge['g'])
-                ) * math.exp(
-                    -(edge['kp'] + edge['kd']) * delta_time
-                )
-            )
+        kp = datasheet.kp0 * exp(datasheet.eta_p * edge['deltaV'])
+        kd = datasheet.kd0 * exp(-datasheet.eta_d * edge['deltaV'])
+        g = edge['g']
+        g = kp / (kp + kd) * (1 + kd / kp * g * exp(- delta_time * (kp + kd)))
+        edge['g'] = g
         edge['Y'] = datasheet.Y_min*(1 - edge['g']) + datasheet.Y_max*edge['g']
-        edge['R'] = 1 / edge['Y']
 
 
 def modified_voltage_node_analysis(

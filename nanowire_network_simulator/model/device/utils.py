@@ -72,9 +72,6 @@ def initialize_graph_attributes(
         # assign initial admittance to all edges
         graph[u][v]['Y'] = y_in
 
-        # assign initial high resistance state in all junctions
-        graph[u][v]['R'] = 1 / graph[u][v]['Y']
-
         graph[u][v]['deltaV'] = 0
         graph[u][v]['g'] = 0
 
