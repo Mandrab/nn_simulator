@@ -16,7 +16,7 @@ def calculate_currents(graph: Graph) -> Graph:
         edge_admittance = graph[u][v]['Y']
 
         graph[u][v]['I'] = delta_v * edge_admittance
-        graph[u][v]['I_rounded'] = np.round(graph[u][v]['I'], 2)
+        graph[u][v]['i_rounded'] = np.round(graph[u][v]['I'], 2)
 
     # remove negative arches (there already is a positive, opposite arch)
     for u in graph.nodes():
