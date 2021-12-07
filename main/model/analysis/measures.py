@@ -1,7 +1,7 @@
 import logging
 import networkx as nx
 
-from nanowire_network_simulator.model.device.utils import largest_component
+from main.model.device.utils import largest_component
 from networkx import Graph
 from typing import Dict, Callable
 

@@ -1,7 +1,7 @@
 import logging
 import networkx as nx
 
-from nanowire_network_simulator.model import wires
+from main.model import wires
 from networkx import Graph
 from . import Datasheet
 from typing import Tuple
