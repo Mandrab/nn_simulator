@@ -1,7 +1,7 @@
 import progressbar
 import random
 
-from nanowire_network_simulator import *
+from main import *
 
 ################################################################################
 # SIMULATION SETUP
