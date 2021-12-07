@@ -1,10 +1,14 @@
+# FOLDERS
 .eggs
 .idea
 .vscode
-*.dat
-*.gif
-*.pyc
 build
 dist
 nanowire_network_simulator.egg-info
-!tests/**/*.dat
+# FILES
+*.dat
+*.gif
+*.pyc
+# EXCEPTIONS
+!test/**/*.dat
+

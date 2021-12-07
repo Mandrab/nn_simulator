@@ -2,7 +2,7 @@ import json
 import networkx as nx
 
 from collections.abc import Iterable
-from nanowire_network_simulator import *
+from main import *
 
 
 ################################################################################
@@ -39,7 +39,7 @@ def are_equal(g1, g2):
     for source, destination in g1.edges():
         for key, value in g1[source][destination].items():
             other = g2[source][destination][key]
-            if key == "R":
+            if key == 'R':
                 equals(value, other, r_precision)
             else:
                 equals(value, other, g_precision)
@@ -54,9 +54,9 @@ def test_original_behaviour():
     wires_dict = generate_network(default)
     graph = get_graph(wires_dict)
 
-    expected = import_graph("creation.dat")
+    expected = import_graph('test/creation.dat')
     are_equal(graph, expected)
-    logging.info("TEST: created graphs are equals")
+    logging.info('TEST: created graphs are equals')
 
     grounds = {358}
     sources = {273}
@@ -71,9 +71,9 @@ def test_original_behaviour():
     grounds = {mapping[g] for g in grounds}
     sources = {mapping[s] for s in sources}
 
-    expected = import_graph("simplification.dat")
+    expected = import_graph('test/simplification.dat')
     are_equal(graph, expected)
-    logging.info("TEST: simplified graphs are equals")
+    logging.info('TEST: simplified graphs are equals')
 
     ############################################################################
     # ELECTRICAL STIMULATION
@@ -102,14 +102,14 @@ def test_original_behaviour():
     initialize_graph_attributes(graph, sources, grounds, default.Y_min)
     voltage_initialization(graph, sources, grounds)
 
-    expected = import_graph("initialization.dat")
+    expected = import_graph('test/initialization.dat')
     are_equal(graph, expected)
-    logging.info("TEST: initialized graphs are equals")
+    logging.info('TEST: initialized graphs are equals')
 
     # growth over time
     for i in range(steps):
         stimulate(graph, default, delta_t, stimulations[i], [], grounds)
 
-    expected = import_graph("stimulation.dat")
+    expected = import_graph('test/stimulation.dat')
     are_equal(graph, expected)
-    logging.info("TEST: stimulated graphs are equals")
+    logging.info('TEST: stimulated graphs are equals')
