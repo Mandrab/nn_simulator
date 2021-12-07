@@ -1,0 +1,8 @@
+2021-12-07    Paolo Baldini    <paolobaldini01@gmail.com>
+    Release 0.1.1
+    * Resolved various bugs
+    * Improved personalization of plotting functions
+
+2021-11-18    Paolo Baldini    <paolobaldini01@gmail.com>
+    Release 0.1.0
+    * First release of the functioning simulator
