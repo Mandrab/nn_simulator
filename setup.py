@@ -13,8 +13,9 @@ setup(
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Topic :: Scientific/Engineering :: Artificial Life'
     ],
-    packages=find_packages('nanowire_network_simulator'),
-    package_dir={'': 'main'},
+    packages=['nanowire_network_simulator.' + _ for _ in find_packages('main')]
+    + ['nanowire_network_simulator'],
+    package_dir={'nanowire_network_simulator': 'main'},
     install_requires=[
         'numpy',
         'networkx',
