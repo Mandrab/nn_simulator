@@ -10,7 +10,7 @@ install:
 activate_env:
 	source venv/bin/activate
 
-.PHONY: clear
-
 clear:
 	rm -rf build dist .eggs
+
+.PHONY: dist test install activate_env clear
