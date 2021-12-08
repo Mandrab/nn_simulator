@@ -7,23 +7,26 @@ import numpy as np
 from ..model.device import Datasheet
 from ..model.device.datasheet import factory
 from networkx import Graph
-from os.path import exists
+from os.path import exists as e
+from typing import Dict
 
 __DATASHEET_FILE = "datasheet.dat"
 __GRAPH_FILE = "graph.dat"
 __WIRES_FILE = "wires.dat"
+__CONNECTIONS_FILE = "connections.dat"
 
 
 def save(
         datasheet: Datasheet,
         graph: Graph,
         wires: dict,
+        connections: Dict,
         datasheet_file: str = __DATASHEET_FILE,
         graph_file: str = __GRAPH_FILE,
-        wires_file: str = __WIRES_FILE
+        wires_file: str = __WIRES_FILE,
+        connections_file: str = __CONNECTIONS_FILE
 ):
     """Save the graph, datasheet and wires to files"""
-
     logging.info("Saving graph to file")
 
     # remove a saved instance of the graph from the wires-dict
@@ -40,7 +43,8 @@ def save(
     pairs = [
         (datasheet_file, dataclasses.asdict(datasheet)),
         (graph_file, nx.node_link_data(graph)),
-        (wires_file, wires)
+        (wires_file, wires),
+        (connections_file, connections)
     ]
 
     # save each data in the file with a json format
@@ -52,20 +56,20 @@ def save(
 def exist(
         datasheet_file: str = __DATASHEET_FILE,
         graph_file: str = __GRAPH_FILE,
-        wires_file: str = __WIRES_FILE
+        wires_file: str = __WIRES_FILE,
+        connections_file: str = __CONNECTIONS_FILE
 ) -> (bool, bool):
     """Check if graph, datasheet and wires files exists"""
-
-    return exists(graph_file), exists(datasheet_file), exists(wires_file)
+    return e(graph_file), e(datasheet_file), e(wires_file), e(connections_file)
 
 
 def read(
         datasheet_file: str = __DATASHEET_FILE,
         graph_file: str = __GRAPH_FILE,
-        wires_file: str = __WIRES_FILE
+        wires_file: str = __WIRES_FILE,
+        connections_file: str = __CONNECTIONS_FILE
 ) -> (Graph, dict):
     """Read graph, datasheet and wires from the files and import them"""
-
     logging.info("Importing graph from file")
 
     # load and convert the json to a datasheet
@@ -82,5 +86,9 @@ def read(
     with open(wires_file, 'r') as file:
         wires = json.load(file)
 
+    # load and convert the json to a wires dict
+    with open(connections_file, 'r') as file:
+        connections = json.load(file)
+
     # build the graph and return it
-    return graph, datasheet, wires
+    return graph, datasheet, wires, connections

@@ -22,7 +22,7 @@ else:
     graph, wires_dict = minimum_viable_network(default)
 
     # save a copy of the created graphs
-    backup.save(default, graph, wires_dict)
+    backup.save(default, graph, wires_dict, dict())
 
 # select a random ground node
 grounds = random_nodes(graph, avoid=set())
