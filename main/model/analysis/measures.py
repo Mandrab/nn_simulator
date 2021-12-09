@@ -1,7 +1,7 @@
 import logging
 import networkx as nx
 
-from main.model.device.utils import largest_component
+from ..device.utils import largest_component
 from networkx import Graph
 from typing import Dict, Callable
 

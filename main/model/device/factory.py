@@ -1,9 +1,9 @@
 import logging
 import networkx as nx
 
-from main.model import wires
-from networkx import Graph
 from . import Datasheet
+from . import wires
+from networkx import Graph
 from typing import Tuple
 from .utils import largest_component
 
