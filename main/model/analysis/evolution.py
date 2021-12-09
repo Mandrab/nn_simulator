@@ -5,7 +5,7 @@ from functools import cached_property
 from collections.abc import Iterable
 from main.model.device import Datasheet
 from networkx import Graph
-from typing import Set, Tuple, List
+from typing import Set, Tuple, List, Dict
 from .utils import calculate_currents
 
 
@@ -17,7 +17,7 @@ class Evolution:
     datasheet: Datasheet
 
     # wires dictionary of the device
-    wires_dict: dict
+    wires_dict: Dict
 
     # network stimulation delay
     delta_time: float
