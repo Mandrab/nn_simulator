@@ -5,6 +5,7 @@
 build
 dist
 nanowire_network_simulator.egg-info
+venv
 # FILES
 *.dat
 *.gif
