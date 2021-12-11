@@ -251,7 +251,7 @@ def voltage_distribution_map(_, ax, plot_data: Evolution, **others):
         plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max,
         normal_node_colors=[graph.nodes[n]['V'] for n in graph.nodes()],
-        **__dicts(others, ax=ax)
+        **__dicts(others, default=dict(ax=ax), others=dict(ax=ax))
     )
 
 
@@ -265,7 +265,7 @@ def conductance_map(_, ax, plot_data: Evolution, **others):
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max, 20,
         [graph.nodes[n]['V'] for n in graph.nodes()],
         [graph[u][v]['Y'] for u, v in graph.edges()],
-        **__dicts(others, ax=ax)
+        **__dicts(others, default=dict(ax=ax), others=dict(ax=ax))
     )
 
 
@@ -295,7 +295,7 @@ def information_centrality_map(_, ax, plot_data: Evolution, **others):
         centrality_normalized,
         [L.nodes[n]['information_centrality'] for n in L.nodes],
         [L[u][v]['Y'] for u, v in L.edges()],
-        **__dicts(others, ax=ax)
+        **__dicts(others, default=dict(ax=ax), others=dict(ax=ax))
     )
 
 
@@ -339,7 +339,7 @@ def animation_kamada_kawai(fig, ax, plot_data: Evolution, **others):
     frames = len(plot_data.network_instances) - 1
 
     hs = [*plot_data.currents_graphs()]
-    t_list = [i * plot_data.delta_time for i in range(frames_num)]
+    t_list = [i * plot_data.delta_time for i in range(frames)]
 
     def update(i):
         plt.cla()
