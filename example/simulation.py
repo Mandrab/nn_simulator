@@ -14,7 +14,7 @@ random.seed(1234)
 
 # if graph, datasheet and wires backup-files exist, import them
 if all(backup.exist()):
-    graph, default, wires_dict = backup.read()
+    graph, default, wires_dict, _ = backup.read()
 
 # if the backup-files does not exists, create the network and save it
 else:
