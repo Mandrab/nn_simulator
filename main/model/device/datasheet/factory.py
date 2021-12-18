@@ -1,7 +1,12 @@
 from .Datasheet import Datasheet
 
 
-def from_density(density: float, size: int, wires_length: float) -> Datasheet:
+def from_density(
+        density: float,
+        size: int,
+        wires_length: float,
+        seed: int = Datasheet.seed
+) -> Datasheet:
     """Returns a Datasheet that represents a device with a given density."""
 
     # calculate number of needed wires to reach the density
@@ -9,7 +14,8 @@ def from_density(density: float, size: int, wires_length: float) -> Datasheet:
 
     return Datasheet(
         wires_count=wires, Lx=size, Ly=size,
-        mean_length=wires_length, std_length=wires_length * 0.35
+        mean_length=wires_length, std_length=wires_length * 0.35,
+        seed=seed
     )
 
 
