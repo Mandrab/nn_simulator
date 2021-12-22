@@ -74,7 +74,7 @@ def minimum_viable_network(datasheet: Datasheet) -> Tuple[Graph, dict]:
     To improve speed, reduce the network to the largest connected component.
     For only 1 ground that is ok, but for more it may limit the potential of the
     network: disjoint components may result in better performance when the
-    output are not correlated (todo that is just an hypothesis).
+    outputs depend only on some of the inputs (that is just an hypothesis).
     """
 
     # create a device that is represented by the given datasheet
