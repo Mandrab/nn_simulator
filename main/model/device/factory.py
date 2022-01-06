@@ -2,7 +2,7 @@ import networkx as nx
 
 from . import Datasheet
 from . import wires
-from main import logger
+from logger import logger
 from networkx import Graph
 from typing import Tuple
 from .utils import largest_component

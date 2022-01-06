@@ -16,7 +16,7 @@ import networkx as nx
 import numpy as np
 
 from itertools import combinations
-from main import logger
+from logger import logger
 from scipy.spatial.distance import cdist
 
 

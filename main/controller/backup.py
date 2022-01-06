@@ -3,7 +3,7 @@ import json
 import networkx as nx
 import numpy as np
 
-from main.logger import logger
+from logger import logger
 from ..model.device import Datasheet
 from ..model.device.datasheet import factory
 from networkx import Graph
