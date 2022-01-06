@@ -1,9 +1,9 @@
 import dataclasses
 import json
-import logging
 import networkx as nx
 import numpy as np
 
+from main.logger import logger
 from ..model.device import Datasheet
 from ..model.device.datasheet import factory
 from networkx import Graph
@@ -28,7 +28,7 @@ def save(
 ):
     """Save the graph, datasheet and wires to files"""
 
-    logging.info("Saving graph to file")
+    logger.info("Saving graph to file")
 
     # remove a saved instance of the graph from the wires-dict
     if 'G' in wires:
@@ -73,7 +73,7 @@ def read(
 ) -> (Graph, Datasheet, Dict, Dict):
     """Read graph, datasheet and wires from the files and import them"""
 
-    logging.info("Importing graph from file")
+    logger.info("Importing graph from file")
 
     # load and convert the json to a datasheet
     with open(datasheet_file, 'r') as file:

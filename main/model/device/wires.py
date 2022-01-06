@@ -12,11 +12,11 @@ wire's orientation.
 @author: milan
 """
 
-import logging
 import networkx as nx
 import numpy as np
 
 from itertools import combinations
+from main import logger
 from scipy.spatial.distance import cdist
 
 
@@ -38,11 +38,9 @@ def generate_wires_distribution(
     number_of_wires : int 
         Total number of wires to be sampled
     wire_av_length : float 
-        Average wire length in mum
+        Average wire length in mum (default = 14)
     wire_dispersion : float 
         Dispersion/scale of length distribution in mum
-    wire_length : float 
-        Length of the nanowire in mum (default = 14)
     centroid_dispersion : float 
         Scale parameter for the general normal distribution from 
         which centroids of wires are drawn in mum
@@ -255,7 +253,7 @@ def select_largest_component(wires_dict):
     nw = len(wires_dict['G'].nodes())
     nj = len(wires_dict['G'].edges())
 
-    logging.debug("The largest component has %5d nodes and %6d edges", nw, nj)
+    logger.debug("The largest component has %5d nodes and %6d edges", nw, nj)
 
     # replace values in the dictionary
     wires_dict['number_of_wires'] = nw
@@ -345,7 +343,7 @@ def detect_junctions(wires_dict):
     wires_dict: dict 
         with added keys
     """
-    logging.debug('Detecting junctions')
+    logger.debug('Detecting junctions')
     xi, yi, edge_list = [], [], []
     for first, second in combinations(range(wires_dict['number_of_wires']), 2):
 
@@ -381,7 +379,7 @@ def detect_junctions(wires_dict):
         wires_dict['yi'] = np.asarray(yi)
         wires_dict['edge_list'] = np.asarray(edge_list)
 
-        logging.debug('Finished detecting junctions')
+        logger.debug('Finished detecting junctions')
 
         return wires_dict
 
@@ -459,7 +457,7 @@ def check_connectedness(wires_dict):
     if not nx.is_connected(graph):
         nc = nx.number_connected_components(graph)
 
-        logging.warning("This graph has %4d connected components", nc)
+        logger.warning("This graph has %4d connected components", nc)
 
         return False
 

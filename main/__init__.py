@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-
-import logging
-
+from .logger import logger
 from .controller import backup
 from .model.analysis.evolution import Evolution
 from .model.analysis.measures import print_info, inspect
@@ -10,8 +8,8 @@ from .model.device.factory import generate_network, get_graph, generate_graph
 from .model.device.factory import minimum_viable_network
 from .model.device.utils import initialize_graph_attributes, largest_component
 from .model.interface.factory import random_nodes, random_loads
-from .model.interface.evolutor import mutate, non_ground_selection, \
-    minimum_distance_selection
+from .model.interface.evolutor import mutate, non_ground_selection
+from .model.interface.evolutor import minimum_distance_selection
 from .model.stimulator import stimulate, voltage_initialization
 from .view import plot
 
@@ -33,12 +31,7 @@ __all__ = [
     # stimulation utilities for the network
     "stimulate", "voltage_initialization",
     # logging utilities & setups
-    "logging",
+    "logger",
     # plotting utils
     "plot"
 ]
-
-__LOGGING_FORMAT = '[%(asctime)s %(levelname)s]\t %(message)s'
-
-# define default logging level as INFO and following a standard format
-logging.basicConfig(level=logging.INFO, format=__LOGGING_FORMAT)

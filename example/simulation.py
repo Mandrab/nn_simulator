@@ -36,7 +36,7 @@ loads = random_loads(graph, grounds | sources, count=2)
 ################################################################################
 # ELECTRICAL STIMULATION
 
-logging.info('Electrical stimulation of the network')
+logger.info('Electrical stimulation of the network')
 
 steps = 90              # simulation duration
 pulse_duration = 10     # duration of a stimulation pulse (in steps)
@@ -57,7 +57,7 @@ stimulations = [
 progressbar = progressbar.ProgressBar(max_value=steps)
 
 # growth of the conductive path
-logging.debug('Growth of the conductive path')
+logger.debug('Growth of the conductive path')
 
 # initialize network
 initialize_graph_attributes(graph, sources, grounds, default.Y_min)

@@ -1,8 +1,8 @@
-import logging
 import networkx as nx
 
 from . import Datasheet
 from . import wires
+from main import logger
 from networkx import Graph
 from typing import Tuple
 from .utils import largest_component
@@ -11,7 +11,7 @@ from .utils import largest_component
 def generate_network(datasheet: Datasheet) -> dict:
     """Generate the network according to the datasheet specifications"""
 
-    logging.info('Generating network')
+    logger.info('Generating network')
 
     # generate the network
     wires_dict = wires.generate_wires_distribution(
@@ -37,7 +37,7 @@ def generate_network(datasheet: Datasheet) -> dict:
 def get_graph(wires_dict: dict) -> Graph:
     """Generate graph from specifications"""
 
-    logging.debug('Extracting graph from network')
+    logger.debug('Extracting graph from network')
 
     adj_matrix = wires_dict['adj_matrix']
 

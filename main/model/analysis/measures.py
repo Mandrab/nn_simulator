@@ -1,7 +1,7 @@
-import logging
 import networkx as nx
 
 from ..device.utils import largest_component
+from main import logger
 from networkx import Graph
 from typing import Dict, Callable
 
@@ -42,20 +42,20 @@ def print_info(key: str, graph: Graph):
     """Print a specific measure of the network"""
 
     if key in global_statistics:
-        logging.info(__FORMAT % (key, str(global_statistics[key](graph))))
+        logger.info(__FORMAT % (key, str(global_statistics[key](graph))))
 
     if key in largest_component_statistics:
-        logging.info(__FORMAT % (key, largest_component_statistics[key](graph)))
+        logger.info(__FORMAT % (key, largest_component_statistics[key](graph)))
 
 
 def inspect(graph: Graph):
     """Print all the measures/statistics of the graph"""
 
     for key in global_statistics:
-        logging.info(__FORMAT % (key, global_statistics[key](graph)))
+        logger.info(__FORMAT % (key, global_statistics[key](graph)))
 
     # ANALYSIS OF THE LARGEST CONNECTED COMPONENT
     graph = largest_component(graph)
 
     for key in largest_component_statistics:
-        logging.info(__FORMAT % (key, largest_component_statistics[key](graph)))
+        logger.info(__FORMAT % (key, largest_component_statistics[key](graph)))
