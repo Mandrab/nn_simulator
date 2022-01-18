@@ -1,21 +1,12 @@
 # -*- coding: utf-8 -*-
-import logging
-import matplotlib.pyplot as plt
-import networkx as nx
-
 from collections import Counter
-from functools import cache, reduce
+from functools import reduce
 from itertools import product, chain, cycle
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
-from operator import mul
 from ..model.analysis.evolution import Evolution
 from ..model.device.utils import largest_component
-from networkx import Graph
-from .utils import draw_wires, draw_junctions
-from typing import Set, Any, Callable, Iterable
-
-logging.getLogger('matplotlib.font_manager').disabled = True
-logging.getLogger('matplotlib.colorbar').disabled = True
+from .utils import *
+from typing import Any, Callable, Iterable
 
 
 def plot(data: Evolution, filler: Callable[[Any, Any, Evolution], None]):
@@ -29,7 +20,7 @@ def plot(data: Evolution, filler: Callable[[Any, Any, Evolution], None]):
     ax.set(xlabel=r'x ($\mu$m)', ylabel=r'y ($\mu$m)')
     ax.ticklabel_format(style='plain')
     ax.grid()
-    def _(iterable: Iterable): return reduce(mul, iterable)
+    def _(iterable: Iterable): return reduce(lambda a, b: a * b, iterable)
     ax.axis(map(_, product([data.datasheet.Lx, data.datasheet.Ly], [-.1, 1.1])))
 
     # add data to plot
@@ -47,18 +38,14 @@ def nanowires_distribution(_0, ax, plot_data: Evolution, **_1):
 
 
 def enumerated_nanowires_distribution(_0, _1, plot_data: Evolution, **others):
-    nx.draw_networkx(
-        plot_data.graph,
-        __nodes_positions(plot_data.graph),
-        **__dicts(others, node_color='r', node_size=20, with_labels=True)
-    )
+    draw(plot_data.graph, others, 'r', label=True)
 
 
 def graph_of_the_network_Kamada_Kawai(_0, _1, plot_data: Evolution, **others):
     plt.cla()  # override default axis config
     nx.draw_kamada_kawai(
         plot_data.graph,
-        **__dicts(others, node_color='r', node_size=20, with_labels=False)
+        **dicts(others, node_color='r', node_size=20, with_labels=False)
     )
 
 
@@ -74,7 +61,7 @@ def degree_of_nodes_histogram(_0, ax, plot_data: Evolution, **_1):
 
 
 def connected_components(_0, _1, plot_data: Evolution, **others):
-    components = __list_connected_components(plot_data.graph)
+    components = list_connected_components(plot_data.graph)
     colors = chain('r', cycle(['g', 'b', 'c', 'm', 'y']))
 
     # set node-color for print (different between components)
@@ -83,58 +70,28 @@ def connected_components(_0, _1, plot_data: Evolution, **others):
     colors = [list(product(ns, [c])) for ns, c in colors]
     colors = [color for _, color in sorted(chain(*colors))]
 
-    nx.draw_networkx(
-        plot_data.graph,
-        __nodes_positions(plot_data.graph),
-        **__dicts(others, node_color=colors, node_size=20, with_labels=False)
-    )
+    draw(plot_data.graph, others, colors)
 
 
 def labeled_network(_0, _1, plot_data: Evolution, **others):
-    nx.draw_networkx(
-        largest_component(plot_data.graph), __nodes_positions(plot_data.graph),
-        **__dicts(others, node_color='r', node_size=20, with_labels=True)
-    )
+    draw(largest_component(plot_data.graph), others, 'r', label=True)
 
 
-def largest_connected_component(_0, _1, plot_data: Evolution, **others):
-    components = __list_connected_components(plot_data.graph)
+def largest_connected_component(_0, _1, data: Evolution, **others):
+    graph, out, source, load = data.graph, data.grounds, data.inputs, data.loads
+    opt = iter(getattr(others, _, {}) for _ in ['default', 'inputs', 'loads'])
+
+    components = list_connected_components(graph)
     colors = chain('b', cycle(['lightgray']))
 
     # set node-color for print (different between components)
     colors = [list(product(ns, [c])) for ns, c in zip(components, colors)]
     colors = [color for _, color in sorted(chain(*colors))]
 
-    default = others['default'] if 'default' in others else {}
-    nx.draw_networkx(
-        plot_data.graph,
-        __nodes_positions(plot_data.graph),
-        **__dicts(default, node_color=colors, node_size=20, with_labels=False)
-    )
-
-    nx.draw_networkx_nodes(
-        plot_data.graph,
-        __nodes_positions(plot_data.graph),
-        **__dicts(
-            others['inputs'] if 'inputs' in others else {},
-            nodelist=[*map(lambda v: v[0], plot_data.inputs)],
-            # todo makes no sense if input change in time
-            node_color='r',
-            node_size=300,
-            alpha=0.5
-        )
-    )
-    nx.draw_networkx_nodes(
-        plot_data.graph,
-        __nodes_positions(plot_data.graph),
-        **__dicts(
-            others['loads'] if 'loads' in others else {},
-            nodelist=plot_data.grounds | {n for n, _ in plot_data.loads},
-            node_color='k',
-            node_size=300,
-            alpha=0.5
-        )
-    )
+    # todo makes no sense if input change in time
+    draw(graph, next(opt), colors)
+    highlight(graph, {k for k, _ in source}, 'r', next(opt))
+    highlight(graph, out | {*dict(load)}, 'k', next(opt))
 
 
 def network_conductance(fig, ax1, plot_data: Evolution, **_1):
@@ -182,25 +139,25 @@ def network_conductance(fig, ax1, plot_data: Evolution, **_1):
 def voltage_distribution(_, ax, plot_data: Evolution, **others):
     """Plot the voltage distribution (intensity) of the initial graph"""
     graph = next(iter(plot_data.currents_graphs())).copy()
-    __draw_network(
+    draw_network(
         graph,
         plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max,
         normal_node_colors=[graph.nodes[n]['V'] for n in graph.nodes()],
-        **__dicts(others, default=dict(ax=ax), others=dict(ax=ax))
+        **dicts(others, default=dict(ax=ax), others=dict(ax=ax))
     )
 
 
 def conductance_distribution(_, ax, plot_data: Evolution, **others):
     """Plot the conductance distribution of the final graph"""
     graph = next(iter(plot_data.currents_graphs(reverse=True))).copy()
-    __draw_network(
+    draw_network(
         graph,
         plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max, 20,
         [graph.nodes[n]['V'] for n in graph.nodes()],
         [graph[u][v]['Y'] for u, v in graph.edges()],
-        **__dicts(others, default=dict(ax=ax), others=dict(ax=ax))
+        **dicts(others, default=dict(ax=ax), others=dict(ax=ax))
     )
 
 
@@ -221,14 +178,14 @@ def information_centrality(_, ax, plot_data: Evolution, **others):
 
     centrality_normalized = [(m * v) + b for v in centrality[-1]]
 
-    __draw_network(
+    draw_network(
         plot_data.graph,
         plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max,
         centrality_normalized,
         [L.nodes[n]['information_centrality'] for n in L.nodes],
         [L[u][v]['Y'] for u, v in L.edges()],
-        **__dicts(others, default=dict(ax=ax), others=dict(ax=ax))
+        **dicts(others, default=dict(ax=ax), others=dict(ax=ax))
     )
 
 
@@ -243,7 +200,7 @@ def animation(fig, ax, plot_data: Evolution, **others):
 
         nx.draw_networkx(
             hs[i],
-            __nodes_positions(hs[i]),
+            nodes_positions(hs[i]),
             # NODES
             node_size=60,
             node_color=[hs[i].nodes[n]['V'] for n in hs[i].nodes()],
@@ -263,7 +220,7 @@ def animation(fig, ax, plot_data: Evolution, **others):
     # animation
     FuncAnimation(
         fig, update,
-        **__dicts(others, frames=frames, interval=500, blit=False, repeat=True)
+        **dicts(others, frames=frames, interval=500, blit=False, repeat=True)
     ).save('animation_1.gif', writer='imagemagick')
 
 
@@ -298,7 +255,7 @@ def animation_kamada_kawai(fig, ax, plot_data: Evolution, **others):
 
     FuncAnimation(
         fig, update,
-        **__dicts(others, frames=frames, interval=500, blit=False, repeat=True)
+        **dicts(others, frames=frames, interval=500, blit=False, repeat=True)
     ).save('animation_2.gif', writer=ImageMagickWriter(fps=2))
 
 
@@ -311,64 +268,4 @@ def outputs(_, ax, plot_data: Evolution, **_1):  # todo defined by paolo
         for load, _ in plot_data.loads:
             data[load].append(graph.nodes[load]["V"])
 
-    __line_graph(ax, plot_data.update_times, *data.values())
-
-
-def __line_graph(ax, x, *data):
-    plt.cla()
-
-    colors = iter(['b', 'g', 'r', 'c', 'm', 'y'] * len(data))
-    for data, color in zip(data, colors):
-        ax.plot(x, data, color=color)
-        ax.tick_params(axis='y', labelcolor=color)
-
-        # instantiate a second axes that shares the same x-axis
-        ax = ax.twinx()
-
-
-def __draw_network(
-        graph: Graph,
-        sources: Set[int], grounds: Set[int], loads: Set[int],
-        edge_min: float = None, edge_max: float = None,
-        normal_sizes: Any = 20,
-        normal_node_colors: Any = '#1f78b4', normal_edge_colors: Any = 'k',
-        **others
-):
-    nx.draw_networkx(
-        graph,
-        __nodes_positions(graph),
-        **__dicts(
-            others['default'] if 'default' in others else {},
-            node_size=normal_sizes,
-            node_color=normal_node_colors, edge_color=normal_edge_colors,
-            cmap=plt.cm.get_cmap('cool'), edge_cmap=plt.cm.get_cmap('Reds'),
-            width=2,
-            edge_vmin=edge_min, edge_vmax=edge_max,
-            arrows=False,
-            with_labels=False,
-            font_size=6
-        )
-    )
-
-    for data, color in zip([sources, grounds, loads], ['r', 'k', 'y']):
-        nx.draw_networkx_nodes(
-            graph,
-            __nodes_positions(graph),
-            **__dicts(
-                others['others'] if 'others' in others else {},
-                nodelist=data, node_size=300, node_color=color, alpha=0.5
-            )
-        )
-
-
-@cache
-def __nodes_positions(graph: Graph): return nx.get_node_attributes(graph, 'pos')
-
-
-@cache
-def __list_connected_components(graph: Graph):
-    """Return sorted list of connected components"""
-    return sorted(nx.connected_components(graph), key=len, reverse=True)
-
-
-def __dicts(new, **default): return default | new
+    line_graph(ax, plot_data.update_times, *data.values())
