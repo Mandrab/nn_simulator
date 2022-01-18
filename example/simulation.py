@@ -48,10 +48,7 @@ v = 10.0                # pulse amplitude of stimulation
 
 # generate vin stimulation for each input
 stimulations = [v] * pulse_duration * pulse_count + [0.01] * reads
-stimulations = [
-    [(source, stimulations[i]) for source in sources]
-    for i in range(steps)
-]
+stimulations = [ [(s, stimulations[i]) for s in sources] for i in range(steps)]
 
 # setup progressbar for print progress
 progressbar = progressbar.ProgressBar(max_value=steps)
@@ -64,13 +61,7 @@ initialize_graph_attributes(graph, sources, grounds, default.Y_min)
 stimulus = voltage_initialization(graph, sources, grounds)
 
 # creation of an analysis utility and save of initial state
-evolution = Evolution(
-    default,
-    wires_dict,
-    delta_t,
-    grounds,
-    loads
-)
+evolution = Evolution(default, wires_dict, delta_t, grounds, loads)
 evolution.append(graph, stimulus)
 
 # growth over time
@@ -85,18 +76,18 @@ progressbar.finish()
 
 # inspect(graph)
 
-# plot.plot(evolution, plot.adj_matrix)
-# plot.plot(evolution, plot.network)
-# plot.plot(evolution, plot.graph)
-# plot.plot(evolution, plot.kamada_kawai_graph)
-# plot.plot(evolution, plot.degree_of_nodes)
-# plot.plot(evolution, plot.highlight_connected_components)
-# plot.plot(evolution, plot.largest_connected_component)
-# plot.plot(evolution, plot.network_7)
-# plot.plot(evolution, plot.conductance)
-# plot.plot(evolution, plot.voltage_distribution_map)
-# plot.plot(evolution, plot.conductance_map)
-# plot.plot(evolution, plot.information_centrality_map)
-# plot.plot(evolution, plot.outputs)
-# plot.plot(evolution, plot.animation)
-# plot.plot(evolution, plot.animation_kamada_kawai)
+# plot.plot(evolution, plot.adjacency_matrix).show()
+# plot.plot(evolution, plot.nanowires_distribution).show()
+# plot.plot(evolution, plot.enumerated_nanowires_distribution).show()
+# plot.plot(evolution, plot.graph_of_the_network_Kamada_Kawai).show()
+# plot.plot(evolution, plot.degree_of_nodes_histogram).show()
+# plot.plot(evolution, plot.connected_components).show()
+# plot.plot(evolution, plot.labeled_network).show()
+# plot.plot(evolution, plot.largest_connected_component).show()
+# plot.plot(evolution, plot.network_conductance).show()
+# plot.plot(evolution, plot.voltage_distribution).show()
+# plot.plot(evolution, plot.conductance_distribution).show()
+# plot.plot(evolution, plot.information_centrality).show()
+# plot.plot(evolution, plot.outputs).show()
+# plot.plot(evolution, plot.animation).show()
+# plot.plot(evolution, plot.animation_kamada_kawai).show()
