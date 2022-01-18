@@ -1,177 +1,115 @@
 # -*- coding: utf-8 -*-
-import collections
 import logging
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from functools import cache
+from collections import Counter
+from functools import cache, reduce
+from itertools import product, chain, cycle
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
+from operator import mul
 from ..model.analysis.evolution import Evolution
 from ..model.device.utils import largest_component
 from networkx import Graph
 from .utils import draw_wires, draw_junctions
-from typing import Set, Any, Callable
+from typing import Set, Any, Callable, Iterable
 
 logging.getLogger('matplotlib.font_manager').disabled = True
 logging.getLogger('matplotlib.colorbar').disabled = True
 
 
 def plot(data: Evolution, filler: Callable[[Any, Any, Evolution], None]):
-    """Standard plotting setup"""
+    """Standard plotting setup."""
+
     fig = plt.figure(figsize=(10, 10))
     ax = fig.subplots()
 
-    # add some space around the unit square
-    ax.axis([
-        -.1 * data.datasheet.Lx, 1.1 * data.datasheet.Lx,
-        -.1 * data.datasheet.Ly, 1.1 * data.datasheet.Ly
-    ])
-
-    # set axes labels and grid
+    # set axes labels, grid and add some space around the unit square
+    ax.set(title=filler.__name__.capitalize().replace('_', ' '))
     ax.set(xlabel=r'x ($\mu$m)', ylabel=r'y ($\mu$m)')
-    ax.ticklabel_format(style='plain', scilimits=(0, 0))
+    ax.ticklabel_format(style='plain')
     ax.grid()
+    def _(iterable: Iterable): return reduce(mul, iterable)
+    ax.axis(map(_, product([data.datasheet.Lx, data.datasheet.Ly], [-.1, 1.1])))
 
     # add data to plot
     filler(fig, ax, data)
+    return plt
 
-    plt.show()
 
-
-def adj_matrix(_0, _1, plot_data: Evolution, **_2):
-    """Plot adjacency matrix"""
+def adjacency_matrix(_0, _1, plot_data: Evolution, **_2):
     plt.imshow(plot_data.wires_dict['adj_matrix'], cmap='binary')
-    plt.colorbar()
 
 
-def network(_0, ax, plot_data: Evolution, **_1):
-    """Plot nano-wires distribution from wires_dict (network)"""
-    ax.set(title='Nano-wires distribution')
+def nanowires_distribution(_0, ax, plot_data: Evolution, **_1):
     draw_wires(ax, plot_data.wires_dict)
     draw_junctions(ax, plot_data.wires_dict)
 
 
-def graph(_, ax, plot_data: Evolution, **others):
-    """Plot nano-wires distribution from graph"""
-    ax.set(title='Nano-wires distribution graph')
+def enumerated_nanowires_distribution(_0, _1, plot_data: Evolution, **others):
     nx.draw_networkx(
         plot_data.graph,
-        nx.get_node_attributes(plot_data.graph, 'pos'),
+        __nodes_positions(plot_data.graph),
         **__dicts(others, node_color='r', node_size=20, with_labels=True)
     )
 
 
-def kamada_kawai_graph(_, ax, plot_data: Evolution, **others):
-    """Plot nano-wires distribution from graph (kamada-style)"""
+def graph_of_the_network_Kamada_Kawai(_0, _1, plot_data: Evolution, **others):
     plt.cla()  # override default axis config
-
-    ax.set(title='Nano-wires distribution (Kamada-Kawai)')
     nx.draw_kamada_kawai(
         plot_data.graph,
         **__dicts(others, node_color='r', node_size=20, with_labels=False)
     )
 
 
-def degree_of_nodes(_0, ax, plot_data: Evolution, **_1):
-    """Print a diagram representing, for each degree, its quantity"""
+def degree_of_nodes_histogram(_0, ax, plot_data: Evolution, **_1):
     plt.cla()  # override default axis config
 
-    # print "Degree sequence", degree_sequence todo
-    degree_count = collections.Counter(
-        sorted([d for _, d in plot_data.graph.degree()], reverse=True)
-    ).items()
-    deg, cnt = zip(*degree_count)
+    degrees = [*plot_data.graph.degree]
+    degree_count = Counter(sorted([d for _, d in degrees], reverse=True))
+    deg, cnt = zip(*degree_count.items())
 
     plt.bar(deg, cnt, width=0.8, color='b', align='center')
-
-    ax.set(
-        title="Degree Histogram",
-        ylabel='Count', xlabel='Degree',
-        xticks=[d for d in deg], xticklabels=deg
-    )
+    ax.set(ylabel='Count', xlabel='Degree', xticks=deg, xticklabels=deg)
 
 
-def highlight_connected_components(_, ax, plot_data: Evolution, **others):
-    """Print connected components in the network (different colors for each)"""
-    ax.set(title='Connected components')
-
+def connected_components(_0, _1, plot_data: Evolution, **others):
     components = __list_connected_components(plot_data.graph)
-
-    n = round(len(components) / 5) + 1
-    colors = ['r'] + ['g', 'b', 'c', 'm', 'y'] * n
+    colors = chain('r', cycle(['g', 'b', 'c', 'm', 'y']))
 
     # set node-color for print (different between components)
-    for index, component in enumerate(components):
-
-        # get nodes of the component
-        a = [x for x in component]
-
-        # color differently isolated nodes
-        if len(a) == 1:
-            plot_data.graph.nodes[a[0]]['component_color'] = 'k'
-            continue
-
-        for node in a:
-            plot_data.graph.nodes[node]['component_color'] = colors[index]
+    colors = zip(components, colors)
+    colors = [(a, 'k' if len(a) == 1 else b) for a, b in colors]
+    colors = [list(product(ns, [c])) for ns, c in colors]
+    colors = [color for _, color in sorted(chain(*colors))]
 
     nx.draw_networkx(
         plot_data.graph,
-        nx.get_node_attributes(plot_data.graph, 'pos'),
-        **__dicts(
-            others,
-            node_color=[plot_data.graph.nodes[u]['component_color'] for u in
-                        plot_data.graph.nodes()],
-            node_size=20,
-            with_labels=False
-        )
+        __nodes_positions(plot_data.graph),
+        **__dicts(others, node_color=colors, node_size=20, with_labels=False)
     )
 
 
-def largest_connected_component(_, ax, plot_data: Evolution, **others):
-    """Plot only the largest connected component"""
-    ax.set(title='Nanowires distribution graph')
+def labeled_network(_0, _1, plot_data: Evolution, **others):
     nx.draw_networkx(
         largest_component(plot_data.graph), __nodes_positions(plot_data.graph),
         **__dicts(others, node_color='r', node_size=20, with_labels=True)
     )
 
 
-def network_7(_, ax, plot_data: Evolution, **others):
-    """Print connected components in the network (different colors for each)"""
-    # todo difference from 'highlight_connected_components'?
-    ax.set(title='Connected components')
-
+def largest_connected_component(_0, _1, plot_data: Evolution, **others):
     components = __list_connected_components(plot_data.graph)
-
-    n = round(len(components) / 5) + 1
-    colors = ['b'] + ['lightgray'] * n * 5
+    colors = chain('b', cycle(['lightgray']))
 
     # set node-color for print (different between components)
-    for index, component in enumerate(components):
+    colors = [list(product(ns, [c])) for ns, c in zip(components, colors)]
+    colors = [color for _, color in sorted(chain(*colors))]
 
-        # get nodes of the component
-        a = [x for x in component]
-
-        # color differently isolated nodes
-        if len(a) == 1:
-            plot_data.graph.nodes[a[0]]['component_color'] = 'lightgray'
-            continue
-
-        for node in a:
-            plot_data.graph.nodes[node]['component_color'] = colors[index]
-
+    default = others['default'] if 'default' in others else {}
     nx.draw_networkx(
         plot_data.graph,
         __nodes_positions(plot_data.graph),
-        **__dicts(
-            others['default'] if 'default' in others else {},
-            node_color=[
-                plot_data.graph.nodes[node]['component_color']
-                for node in plot_data.graph.nodes()
-            ],
-            node_size=20,
-            with_labels=False
-        )
+        **__dicts(default, node_color=colors, node_size=20, with_labels=False)
     )
 
     nx.draw_networkx_nodes(
@@ -199,7 +137,7 @@ def network_7(_, ax, plot_data: Evolution, **others):
     )
 
 
-def conductance(fig, ax1, plot_data: Evolution, **_1):
+def network_conductance(fig, ax1, plot_data: Evolution, **_1):
     """Display the max conductivity of a path in the network for each state"""
     plt.cla()  # override default axis config
 
@@ -209,7 +147,8 @@ def conductance(fig, ax1, plot_data: Evolution, **_1):
             (source, nx.resistance_distance(
                 graph,
                 source,
-                [*plot_data.grounds | {n for n, _ in plot_data.loads}][0],  # todo
+                # todo
+                [*plot_data.grounds | {n for n, _ in plot_data.loads}][0],
                 weight='Y',
                 invert_weight=False
             )) for source, _ in inputs
@@ -239,12 +178,9 @@ def conductance(fig, ax1, plot_data: Evolution, **_1):
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
 
-    plt.title('Network conductance')
 
-
-def voltage_distribution_map(_, ax, plot_data: Evolution, **others):
-    """Plot the voltage distribution (intensity) of the initial graph"""  # todo
-    ax.set(title='Nano-wires distribution graph')
+def voltage_distribution(_, ax, plot_data: Evolution, **others):
+    """Plot the voltage distribution (intensity) of the initial graph"""
     graph = next(iter(plot_data.currents_graphs())).copy()
     __draw_network(
         graph,
@@ -255,9 +191,8 @@ def voltage_distribution_map(_, ax, plot_data: Evolution, **others):
     )
 
 
-def conductance_map(_, ax, plot_data: Evolution, **others):
-    """Plot the conductance distribution of the final graph"""  # todo
-    ax.set(title='Nano-wires distribution graph')
+def conductance_distribution(_, ax, plot_data: Evolution, **others):
+    """Plot the conductance distribution of the final graph"""
     graph = next(iter(plot_data.currents_graphs(reverse=True))).copy()
     __draw_network(
         graph,
@@ -269,24 +204,22 @@ def conductance_map(_, ax, plot_data: Evolution, **others):
     )
 
 
-def information_centrality_map(_, ax, plot_data: Evolution, **others):
-    """Plot the information centrality of the final graph"""  # todo
-    ax.set(title='Nano-wires distribution graph')
+def information_centrality(_, ax, plot_data: Evolution, **others):
+    """Plot the information centrality of the final graph"""
 
     # scaling information centrality to node sizes
-    information_centralities = [*plot_data.information_centrality()]
-    L = information_centralities[-1]
+    centrality = [*plot_data.information_centrality()]
+    L = centrality[-1]
 
-    min_centrality = min([min(element) for element in information_centralities])
-    max_centrality = max([max(element) for element in information_centralities])
+    min_centrality = min([min(element) for element in centrality])
+    max_centrality = max([max(element) for element in centrality])
 
-    min_node_size = 0.0001
-    max_node_size = 60
+    min_node_size, max_node_size = 1e-3, 60
 
     m = (max_node_size - min_node_size) / (max_centrality - min_centrality)
     b = max_node_size - (m * max_centrality)
 
-    centrality_normalized = [(m * v) + b for v in information_centralities[-1]]
+    centrality_normalized = [(m * v) + b for v in centrality[-1]]
 
     __draw_network(
         plot_data.graph,
@@ -429,8 +362,7 @@ def __draw_network(
 
 
 @cache
-def __nodes_positions(graph: Graph):
-    return nx.get_node_attributes(graph, 'pos')
+def __nodes_positions(graph: Graph): return nx.get_node_attributes(graph, 'pos')
 
 
 @cache
@@ -439,5 +371,4 @@ def __list_connected_components(graph: Graph):
     return sorted(nx.connected_components(graph), key=len, reverse=True)
 
 
-def __dicts(new, **default):
-    return default | new
+def __dicts(new, **default): return default | new
