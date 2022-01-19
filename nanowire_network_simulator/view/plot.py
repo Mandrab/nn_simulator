@@ -3,8 +3,8 @@ from collections import Counter
 from functools import reduce
 from itertools import product, chain, cycle
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
-from ..model.analysis.evolution import Evolution
-from ..model.device.utils import largest_component
+from nanowire_network_simulator.model.analysis.evolution import Evolution
+from nanowire_network_simulator.model.device.utils import largest_component
 from .utils import *
 from typing import Any, Callable, Iterable
 

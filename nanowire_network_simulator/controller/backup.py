@@ -3,9 +3,9 @@ import json
 import networkx as nx
 import numpy as np
 
-from logger import logger
-from ..model.device import Datasheet
-from ..model.device.datasheet import factory
+from nanowire_network_simulator.logger import logger
+from nanowire_network_simulator.model.device import Datasheet
+from nanowire_network_simulator.model.device.datasheet import factory
 from networkx import Graph
 from os.path import exists as e
 from typing import Dict, Iterable

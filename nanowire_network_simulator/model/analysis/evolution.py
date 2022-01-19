@@ -3,7 +3,7 @@ import networkx as nx
 from dataclasses import dataclass, field
 from functools import cached_property
 from collections.abc import Iterable
-from ..device import Datasheet
+from nanowire_network_simulator.model.device import Datasheet
 from networkx import Graph
 from typing import Set, Tuple, List, Dict
 from .utils import calculate_currents

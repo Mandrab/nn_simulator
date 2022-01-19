@@ -16,7 +16,7 @@ import networkx as nx
 import numpy as np
 
 from itertools import combinations
-from logger import logger
+from nanowire_network_simulator.logger import logger
 from scipy.spatial.distance import cdist
 
 
@@ -126,9 +126,7 @@ def generate_dist_lengths(number_of_wires, wire_av_length, wire_dispersion):
     Generates the distribution of wire lengths
     """
 
-    mu = wire_av_length
-    sigma = wire_dispersion
-
+    mu, sigma = wire_av_length, wire_dispersion
     wire_lengths = np.random.normal(mu, sigma, int(number_of_wires))
 
     for i in range(len(wire_lengths)):
@@ -150,8 +148,6 @@ def generate_dist_centroids(number_of_wires: int, loc, scale, beta=5):
 
     # uniform random in [0,Lx) for each coordinate dimension
     xc = np.random.rand(number_of_wires) * 3000
-
-    # uniform random in [0,Lx) for each coordinate dimension
     yc = np.random.rand(number_of_wires) * 3000
 
     # this is a normal distribution
@@ -370,9 +366,8 @@ def detect_junctions(wires_dict):
             # save node indices for every edge
             edge_list.append([first, second])
 
-    # save centres coordinates and edge list to dict
-    # if there are junctions
-    if len(edge_list) is not 0:
+    # save centres coordinates and edge list to dict if there are junctions
+    if len(edge_list) != 0:
 
         wires_dict['number_of_junctions'] = len(edge_list)
         wires_dict['xi'] = np.asarray(xi)
@@ -412,9 +407,7 @@ def generate_adj_matrix(wires_dict):
     ] = 1.0
 
     # make the matrix symmetric
-    adj_matrix = adj_matrix + adj_matrix.T
-
-    wires_dict['adj_matrix'] = adj_matrix
+    wires_dict['adj_matrix'] = adj_matrix + adj_matrix.T
 
     return wires_dict
 
@@ -470,9 +463,9 @@ def remove_key(wires_dict, key='G'):
     altering the original dictionary
     """
 
-    temp_dict = dict(wires_dict)
-    del temp_dict[key]
-    return temp_dict
+    new_dict = dict(wires_dict)
+    del new_dict[key]
+    return new_dict
 
 
 def reconnect_graph(
@@ -494,8 +487,7 @@ def reconnect_graph(
 
     distros = {'gamma': 1, 'uniform': 2}
 
-    length_x = wires_dict['length_x']
-    length_y = wires_dict['length_x']
+    length_x, length_y = wires_dict['length_x'], wires_dict['length_x']
     seed = wires_dict['seed']
 
     for i in range(max_loop):
@@ -519,8 +511,8 @@ def reconnect_graph(
 
         wires_dict = detect_junctions(wires_dict)
         wires_dict = generate_graph(wires_dict)
-        scale_num_wires = scale_num_wires ** falloff_ind_wires
-        scale_length = scale_length ** falloff_ind_length
-        scale_dispersion = scale_dispersion ** falloff_ind_disp
+        scale_num_wires **= falloff_ind_wires
+        scale_length **= falloff_ind_length
+        scale_dispersion **= falloff_ind_disp
 
     return wires_dict

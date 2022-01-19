@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from .logger import logger
 from .controller import backup
 from .model.analysis.evolution import Evolution
 from .model.analysis.measures import print_info, inspect

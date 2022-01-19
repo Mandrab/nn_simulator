@@ -1,8 +1,8 @@
 import networkx as nx
 
-from . import Datasheet
-from . import wires
-from logger import logger
+from .datasheet import Datasheet
+from .wires import generate_wires_distribution, detect_junctions, generate_graph
+from nanowire_network_simulator.logger import logger
 from networkx import Graph
 from typing import Tuple
 from .utils import largest_component
@@ -14,7 +14,7 @@ def generate_network(datasheet: Datasheet) -> dict:
     logger.info('Generating network')
 
     # generate the network
-    wires_dict = wires.generate_wires_distribution(
+    wires_dict = generate_wires_distribution(
         number_of_wires=datasheet.wires_count,
         wire_av_length=datasheet.mean_length,
         wire_dispersion=datasheet.std_length,
@@ -26,10 +26,10 @@ def generate_network(datasheet: Datasheet) -> dict:
     )
 
     # get junctions list and their positions
-    wires.detect_junctions(wires_dict)
+    detect_junctions(wires_dict)
 
     # generate graph object and adjacency matrix
-    wires.generate_graph(wires_dict)
+    generate_graph(wires_dict)
 
     return wires_dict
 
@@ -54,15 +54,13 @@ def get_graph(wires_dict: dict) -> Graph:
     for n in graph.nodes():
         graph.nodes[n]['pos'] = (xpos[n], ypos[n])
 
-    n = 0
-    for u, v in graph.edges():
+    for n, (u, v) in enumerate(graph.edges()):
         graph[u][v]['jx_pos'] = (xjpos[n], yjpos[n])
-        n = n + 1
 
     return graph
 
 
-def generate_graph(datasheet: Datasheet) -> Graph:
+def new_graph(datasheet: Datasheet) -> Graph:
     """Get the graph from a datasheet specification"""
 
     return get_graph(generate_network(datasheet))
