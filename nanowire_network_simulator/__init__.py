@@ -12,6 +12,8 @@ from .model.interface.evolutor import minimum_distance_selection
 from .model.stimulator import stimulate, voltage_initialization
 from .view import plot
 
+LOGGER_NAME = 'nanowire-network-simulator-lib'
+
 __all__ = [
     # file system interactions
     "backup",
@@ -30,7 +32,7 @@ __all__ = [
     # stimulation utilities for the network
     "stimulate", "voltage_initialization",
     # logging utilities & setups
-    "logger",
+    "LOGGER_NAME",
     # plotting utils
     "plot"
 ]
