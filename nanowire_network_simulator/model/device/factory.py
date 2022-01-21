@@ -44,18 +44,18 @@ def get_graph(wires_dict: dict) -> Graph:
     # complete graph with also unconnected nodes
     graph = nx.from_numpy_matrix(adj_matrix)
 
-    xpos = [x for x in wires_dict['xc']]
-    ypos = [y for y in wires_dict['yc']]
+    x_pos = [x for x in wires_dict['xc']]
+    y_pos = [y for y in wires_dict['yc']]
 
-    xjpos = [x for x in wires_dict['xi']]
-    yjpos = [y for y in wires_dict['yi']]
+    x_jpos = [x for x in wires_dict['xi']]
+    y_jpos = [y for y in wires_dict['yi']]
 
     # add node and junction positions as graph attributes (from dictionary)
     for n in graph.nodes():
-        graph.nodes[n]['pos'] = (xpos[n], ypos[n])
+        graph.nodes[n]['pos'] = (x_pos[n], y_pos[n])
 
     for n, (u, v) in enumerate(graph.edges()):
-        graph[u][v]['jx_pos'] = (xjpos[n], yjpos[n])
+        graph[u][v]['jx_pos'] = (x_jpos[n], y_jpos[n])
 
     return graph
 
