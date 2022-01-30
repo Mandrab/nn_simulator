@@ -224,7 +224,7 @@ def draw_network(
     )
 
     for data, color in zip([sources, grounds, loads], ['r', 'k', 'y']):
-        highlight(graph, data, color, getattr(others, 'others', {}))
+        highlight(graph, data, color, others.get('others', {}))
 
 
 def highlight(graph: Graph, nodes: Set[int], color: str, others):

@@ -79,7 +79,7 @@ def labeled_network(_0, _1, plot_data: Evolution, **others):
 
 def largest_connected_component(_0, _1, data: Evolution, **others):
     graph, out, source, load = data.graph, data.grounds, data.inputs, data.loads
-    opt = iter(getattr(others, _, {}) for _ in ['default', 'inputs', 'loads'])
+    opt = iter(others.get(_, {}) for _ in ['default', 'inputs', 'loads'])
 
     components = list_connected_components(graph)
     colors = chain('b', cycle(['lightgray']))
