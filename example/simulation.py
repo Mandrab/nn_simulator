@@ -49,7 +49,7 @@ v = 10.0                # pulse amplitude of stimulation
 
 # generate vin stimulation for each input
 stimulations = [v] * pulse_duration * pulse_count + [0.01] * reads
-stimulations = [ [(s, stimulations[i]) for s in sources] for i in range(steps)]
+stimulations = [[(s, stimulations[i]) for s in sources] for i in range(steps)]
 
 # setup progressbar for print progress
 progressbar = progressbar.ProgressBar(max_value=steps)
