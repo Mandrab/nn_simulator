@@ -70,13 +70,18 @@ def update_edge_weights(graph: Graph, datasheet: Datasheet, delta_time: float):
     for u, v in graph.edges():
         edge = graph[u][v]
 
+        # get the voltage potential difference between the two wires
         edge['deltaV'] = abs(graph.nodes[u]['V'] - graph.nodes[v]['V'])
+
+        # potentiation and depression rate coefficients
         kp = datasheet.kp0 * exp(datasheet.eta_p * edge['deltaV'])
         kd = datasheet.kd0 * exp(-datasheet.eta_d * edge['deltaV'])
+
+        # conductance [0-1]
         g = edge['g']
         g = kp / (kp + kd) * (1 + kd / kp * g * exp(- delta_time * (kp + kd)))
         edge['g'] = g
-        edge['Y'] = datasheet.Y_min*(1 - edge['g']) + datasheet.Y_max*edge['g']
+        edge['Y'] = datasheet.Y_min * (1 - g) + datasheet.Y_max * g
 
 
 def modified_voltage_node_analysis(
