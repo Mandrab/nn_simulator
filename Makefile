@@ -5,7 +5,7 @@ test:
 	python setup.py pytest
 
 install:
-	pip install nanowire_network_simulator-0.1.0-py3-none-any.whl
+	pip install nanowire_network_simulator-1.0.0-py3-none-any.whl
 
 activate_env:
 	source venv/bin/activate
