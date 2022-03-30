@@ -1,9 +1,11 @@
 import networkx as nx
 
-from ..device.utils import largest_component
 from nanowire_network_simulator.logger import logger
 from networkx import Graph
 from typing import Dict, Callable
+
+from nanowire_network_simulator.model.device.network import Network
+from nanowire_network_simulator.model.device.networks import nn2nx
 
 __FORMAT = f'The %s is: %s'
 
@@ -48,14 +50,14 @@ def print_info(key: str, graph: Graph):
         logger.info(__FORMAT % (key, largest_component_statistics[key](graph)))
 
 
-def inspect(graph: Graph):
+def inspect(network: Network):
     """Print all the measures/statistics of the graph"""
+
+    # convert matrix representation to graph one
+    graph = nn2nx(network)
 
     for key in global_statistics:
         logger.info(__FORMAT % (key, global_statistics[key](graph)))
-
-    # ANALYSIS OF THE LARGEST CONNECTED COMPONENT
-    graph = largest_component(graph)
 
     for key in largest_component_statistics:
         logger.info(__FORMAT % (key, largest_component_statistics[key](graph)))
