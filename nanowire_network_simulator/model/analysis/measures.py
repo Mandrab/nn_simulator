@@ -1,11 +1,11 @@
 import networkx as nx
 
 from nanowire_network_simulator.logger import logger
+from nanowire_network_simulator.model.device.network import Network
+from nanowire_network_simulator.model.device.networks import nn2nx
 from networkx import Graph
 from typing import Dict, Callable
 
-from nanowire_network_simulator.model.device.network import Network
-from nanowire_network_simulator.model.device.networks import nn2nx
 
 __FORMAT = f'The %s is: %s'
 
