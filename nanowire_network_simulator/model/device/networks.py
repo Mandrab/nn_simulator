@@ -2,7 +2,8 @@ import cupy as cp
 import networkx as nx
 
 from .datasheet.Datasheet import Datasheet
-from .wires import generate_wires_distribution, detect_junctions, generate_graph
+from .wires import generate_wires_distribution, detect_junctions
+from .wires import generate_adj_matrix
 from nanowire_network_simulator.model.device.network import Network
 from nanowire_network_simulator.logger import logger
 from typing import Dict
@@ -39,7 +40,7 @@ def generate_network_data(datasheet: Datasheet) -> Dict:
     detect_junctions(wires_dict)
 
     # generate graph object and adjacency matrix
-    generate_graph(wires_dict)
+    generate_adj_matrix(wires_dict)
 
     return wires_dict
 
@@ -97,8 +98,8 @@ def nx2nn(graph: nx.Graph) -> Network:
     Parameters
     ----------
     graph: nx.Graph
-        a Networkx graph with all the information (voltage, conductance, etc.) in
-        nodes and edges as fields
+        a Networkx graph with all the information (voltage, conductance, etc.)
+        in nodes and edges as fields
     Returns
     -------
     Matrix format of the nanowire network
@@ -120,13 +121,17 @@ def nx2nn(graph: nx.Graph) -> Network:
     # get junction conductance to edge
     circuit, admittance = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
     for u, v in graph.edges():
-        circuit[u, v] = circuit[v, u] = graph[u][v]['Y']
-        admittance[u, v] = admittance[v, u] = graph[u][v]['g']
+        edge = graph[u][v]
+        circuit[u, v] = circuit[v, u] = edge['Y'] if 'Y' in edge else 0
+        admittance[u, v] = admittance[v, u] = edge['g'] if 'g' in edge else 0
+
+    # get ground label from node
+    ground_count = sum(1 for _ in graph.nodes() if 'ground' in graph.nodes[_])
 
     # get wire voltage to nodes and set grounds
-    voltage = cp.zeros(len(adjacency))
+    voltage = cp.zeros(len(adjacency) - ground_count)
     for n in graph.nodes():
-        voltage[n] = graph.nodes[n]['V']
+        voltage[n] = graph.nodes[n]['V'] if 'V' in graph.nodes[n] else 0
 
     network = Network(
         adjacency=adjacency,
@@ -134,12 +139,8 @@ def nx2nn(graph: nx.Graph) -> Network:
         junctions_position=(jx, jy),
         circuit=circuit,
         admittance=admittance,
-        voltage=voltage
+        voltage=voltage,
+        ground_count=ground_count
     )
-
-    # get ground label from node
-    for n in graph.nodes():
-        if 'ground' in graph.nodes[n]:
-            network.ground_count += 1
 
     return network
