@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+import cupy as cp
+
+from .utils import *
 from collections import Counter
 from functools import reduce
-from itertools import product, chain, cycle
+from itertools import product, chain, cycle, groupby
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
+from more_itertools import flatten
 from nanowire_network_simulator.model.analysis.evolution import Evolution
-from nanowire_network_simulator.model.device.utils import largest_component
-from .utils import *
+from nanowire_network_simulator.model.device.networks import nn2nx
 from typing import Any, Callable, Iterable
 
 
@@ -38,13 +41,13 @@ def nanowires_distribution(_0, ax, plot_data: Evolution, **_1):
 
 
 def enumerated_nanowires_distribution(_0, _1, plot_data: Evolution, **others):
-    draw(plot_data.graph, others, 'r', label=True)
+    draw(nn2nx(plot_data.graph), others, 'r', label=True)
 
 
 def graph_of_the_network_Kamada_Kawai(_0, _1, plot_data: Evolution, **others):
     plt.cla()  # override default axis config
     nx.draw_kamada_kawai(
-        plot_data.graph,
+        nn2nx(plot_data.graph),
         **dicts(others, node_color='r', node_size=20, with_labels=False)
     )
 
@@ -52,7 +55,7 @@ def graph_of_the_network_Kamada_Kawai(_0, _1, plot_data: Evolution, **others):
 def degree_of_nodes_histogram(_0, ax, plot_data: Evolution, **_1):
     plt.cla()  # override default axis config
 
-    degrees = [*plot_data.graph.degree]
+    degrees = [*nn2nx(plot_data.graph).degree]
     degree_count = Counter(sorted([d for _, d in degrees], reverse=True))
     deg, cnt = zip(*degree_count.items())
 
@@ -61,7 +64,8 @@ def degree_of_nodes_histogram(_0, ax, plot_data: Evolution, **_1):
 
 
 def connected_components(_0, _1, plot_data: Evolution, **others):
-    components = list_connected_components(plot_data.graph)
+    graph = nn2nx(plot_data.graph)
+    components = list_connected_components(graph)
     colors = chain('r', cycle(['g', 'b', 'c', 'm', 'y']))
 
     # set node-color for print (different between components)
@@ -70,15 +74,16 @@ def connected_components(_0, _1, plot_data: Evolution, **others):
     colors = [list(product(ns, [c])) for ns, c in colors]
     colors = [color for _, color in sorted(chain(*colors))]
 
-    draw(plot_data.graph, others, colors)
+    draw(graph, others, colors)
 
 
 def labeled_network(_0, _1, plot_data: Evolution, **others):
-    draw(largest_component(plot_data.graph), others, 'r', label=True)
+    draw(nn2nx(plot_data.graph), others, 'r', label=True)
 
 
 def largest_connected_component(_0, _1, data: Evolution, **others):
-    graph, out, source, load = data.graph, data.grounds, data.inputs, data.loads
+    graph = nn2nx(data.graph)
+    out, source, load = data.grounds, data.inputs.items(), data.loads
     opt = iter(others.get(_, {}) for _ in ['default', 'inputs', 'loads'])
 
     components = list_connected_components(graph)
@@ -100,45 +105,64 @@ def network_conductance(fig, ax1, plot_data: Evolution, **_1):
 
     # calculate network minimum resistance
     resistances = [
-        min([
-            (source, nx.resistance_distance(
-                graph,
+        [
+            (
                 source,
-                # todo
-                [*plot_data.grounds | {n for n, _ in plot_data.loads}][0],
-                weight='Y',
-                invert_weight=False
-            )) for source, _ in inputs
-        ]) for graph, inputs in plot_data.network_instances
+                [
+                    nx.resistance_distance(
+                        nn2nx(graph),
+                        source,
+                        [*plot_data.grounds | {n for n, _ in plot_data.loads}][0],
+                        weight='Y',
+                        invert_weight=False
+                    )
+                ]
+            ) for source, _ in inputs.items()
+        ] for graph, inputs in plot_data.instances
     ]
-    sources_voltages = [
-        next(v for s_, v in plot_data.network_instances[i][1] if s_ == s)
-        for i, (s, r) in enumerate(resistances)
-    ]
-    conductances = [1 / v for _, v in resistances]
+    resistances = flatten(resistances)
+    resistances = sorted(resistances, key=lambda _: _[0])
+    resistances = groupby(resistances, key=lambda _: _[0])
+
+    def mapper(pair):
+        source, instances = pair
+        instances = map(lambda _: _[1], instances)
+        instances = reduce(lambda a, b: a + b, instances)
+        return source, instances
+
+    resistances = map(mapper, resistances)
+    conductances = [[1 / r for r in rs] for _, rs in resistances]
+
+    voltages = [i.items() for _, i in plot_data.instances]
+    voltages = [(s, [v]) for s, v in flatten(voltages)]
+    voltages = sorted(voltages, key=lambda _: _[0])
+    voltages = groupby(voltages, key=lambda _: _[0])
+    voltages = map(mapper, voltages)
 
     color = 'tab:red'
     ax1.set_xlabel('time (s)')
     ax1.set_ylabel('Input Voltage (V)', color=color)
 
-    ax1.plot(plot_data.update_times, sources_voltages, color=color)
+    for _, v in voltages:
+        ax1.plot(plot_data.update_times, v, color=color)
     ax1.tick_params(axis='y', labelcolor=color)
 
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    ax2 = ax1.twinx()
 
     color = 'tab:blue'
-    ax2.set_ylabel('Conductance (S)',
-                   color=color)  # we already handled the x-label with ax1
+    # we already handled the x-label with ax1
+    ax2.set_ylabel('Conductance (S)', color=color)
 
-    ax2.plot(plot_data.update_times, conductances, color=color)
+    for c in conductances:
+        ax2.plot(plot_data.update_times, c, color=color)
     ax2.tick_params(axis='y', labelcolor=color)
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    fig.tight_layout()
 
 
 def voltage_distribution(_, ax, plot_data: Evolution, **others):
     """Plot the voltage distribution (intensity) of the initial graph"""
-    graph = next(iter(plot_data.currents_graphs())).copy()
+    graph = nn2nx(next(plot_data.currents_graphs()))
     draw_network(
         graph,
         plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
@@ -150,7 +174,7 @@ def voltage_distribution(_, ax, plot_data: Evolution, **others):
 
 def conductance_distribution(_, ax, plot_data: Evolution, **others):
     """Plot the conductance distribution of the final graph"""
-    graph = next(iter(plot_data.currents_graphs(reverse=True))).copy()
+    graph = nn2nx(next(plot_data.currents_graphs(reverse=True)))
     draw_network(
         graph,
         plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
@@ -165,8 +189,8 @@ def information_centrality(_, ax, plot_data: Evolution, **others):
     """Plot the information centrality of the final graph"""
 
     # scaling information centrality to node sizes
-    centrality = [*plot_data.information_centrality()]
-    L = centrality[-1]
+    centrality = [*map(cp.asnumpy, plot_data.information_centrality())]
+    graph = nn2nx(plot_data.graph)
 
     min_centrality = min([min(element) for element in centrality])
     max_centrality = max([max(element) for element in centrality])
@@ -179,19 +203,19 @@ def information_centrality(_, ax, plot_data: Evolution, **others):
     centrality_normalized = [(m * v) + b for v in centrality[-1]]
 
     draw_network(
-        plot_data.graph,
+        graph,
         plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max,
         centrality_normalized,
-        [L.nodes[n]['information_centrality'] for n in L.nodes],
-        [L[u][v]['Y'] for u, v in L.edges()],
+        centrality[-1],
+        [graph[u][v]['Y'] for u, v in graph.edges()],
         **dicts(others, default=dict(ax=ax), others=dict(ax=ax))
     )
 
 
 def animation(fig, ax, plot_data: Evolution, **others):
     """Plot animated conductance evolution"""
-    frames = len(plot_data.network_instances) - 1
+    frames = len(plot_data.instances) - 1
 
     hs = [*plot_data.currents_graphs()]
 
@@ -215,7 +239,7 @@ def animation(fig, ax, plot_data: Evolution, **others):
             with_labels=False,  # set TRUE to see node numbers
             font_size=6
         )
-        ax.set(title="t = {}".format(round(plot_data.update_times[i], 1)))
+        ax.set(title='t = {}'.format(round(plot_data.update_times[i], 1)))
 
     # animation
     FuncAnimation(
@@ -226,7 +250,7 @@ def animation(fig, ax, plot_data: Evolution, **others):
 
 def animation_kamada_kawai(fig, ax, plot_data: Evolution, **others):
     """Plot animated conductance evolution in kamada kawai style"""
-    frames = len(plot_data.network_instances) - 1
+    frames = len(plot_data.instances) - 1
 
     hs = [*plot_data.currents_graphs()]
     t_list = [i * plot_data.delta_time for i in range(frames)]
@@ -251,7 +275,7 @@ def animation_kamada_kawai(fig, ax, plot_data: Evolution, **others):
             font_size=6
         )
 
-        ax.set_title("t = {}".format(round(t_list[i], 1)))
+        ax.set_title('t = {}'.format(round(t_list[i], 1)))
 
     FuncAnimation(
         fig, update,
@@ -264,8 +288,8 @@ def outputs(_, ax, plot_data: Evolution, **_1):  # todo defined by paolo
 
     # get sequence of voltage on each output node
     data = dict([(load, []) for load, _ in plot_data.loads])
-    for graph in [g for g, _ in plot_data.network_instances]:
+    for graph in [g for g, _ in plot_data.instances]:
         for load, _ in plot_data.loads:
-            data[load].append(graph.nodes[load]["V"])
+            data[load].append(nn2nx(graph).nodes[load]['V'])
 
     line_graph(ax, plot_data.update_times, *data.values())
