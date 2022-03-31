@@ -109,7 +109,7 @@ def nanowire_network(
     )
 
 
-def copy(network: Network) -> Network:
+def copy(network: Network, ram: bool = True) -> Network:
     """
     Makes a deep copy of the nanowire network.
 
@@ -117,6 +117,9 @@ def copy(network: Network) -> Network:
     ----------
     network: Network
         the network to copy
+    ram: bool
+        specify if the copied system should remain in the gpu memory or be moved
+        to the RAM
     Returns
     -------
     A copy of the input nanowire network
@@ -124,15 +127,20 @@ def copy(network: Network) -> Network:
     xw, yw = network.wires_position
     xj, yj = network.junctions_position
 
-    return Network(
-        adjacency=network.adjacency.copy(),
-        wires_position=(xw.copy(), yw.copy()),
-        junctions_position=(xj.copy(), yj.copy()),
-        circuit=network.circuit.copy(),
-        admittance=network.admittance.copy(),
-        voltage=network.voltage.copy(),
-        ground_count=network.ground_count
+    adj = cp.asnumpy(network.adjacency) if ram else network.adjacency.copy()
+    wp = (
+        cp.asnumpy(xw) if ram else xw.copy(),
+        cp.asnumpy(yw) if ram else yw.copy()
     )
+    jp = (
+        cp.asnumpy(xj) if ram else xj.copy(),
+        cp.asnumpy(yj) if ram else yj.copy()
+    )
+    circuit = cp.asnumpy(network.circuit) if ram else network.circuit.copy()
+    adm = cp.asnumpy(network.admittance) if ram else network.admittance.copy()
+    voltage = cp.asnumpy(network.voltage) if ram else network.voltage.copy()
+
+    return Network(adj, wp, jp, circuit, adm, voltage, network.ground_count)
 
 
 def connect(network: Network, wire_idx: int, resistance: float):
