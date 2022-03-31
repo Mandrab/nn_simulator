@@ -1,3 +1,4 @@
+import cupy as cp
 import networkx as nx
 
 from .datasheet.Datasheet import Datasheet
@@ -67,9 +68,10 @@ def nn2nx(network: Network) -> nx.Graph:
     for u, v in graph.edges():
         graph[u][v]['V'] = float(network.voltage[u] - network.voltage[v])
 
-    # add junction conductance to edge
+    # add junction conductance and admittance to edge
     for u, v in graph.edges():
         graph[u][v]['Y'] = float(network.circuit[u, v])
+        graph[u][v]['g'] = float(network.admittance[u, v])
 
     # add wires position to node
     xs, ys = network.wires_position
@@ -81,4 +83,62 @@ def nn2nx(network: Network) -> nx.Graph:
     for u, v in graph.edges():
         graph[u][v]['jx_pos'] = tuple(map(float, (xs[u, v], ys[u, v])))
 
+    # add ground label to node
+    for i in range(network.ground_count):
+        graph.nodes[i]['ground'] = True
+
     return graph
+
+
+def nx2nn(graph: nx.Graph) -> Network:
+    """
+    Converts a Networkx graph from the matrix format to a nanowire network.
+
+    Parameters
+    ----------
+    graph: nx.Graph
+        a Networkx graph with all the information (voltage, conductance, etc.) in
+        nodes and edges as fields
+    Returns
+    -------
+    Matrix format of the nanowire network
+    """
+
+    adjacency = cp.asarray(nx.to_numpy_array(graph))
+
+    # get wires position from node
+    wx, wy = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
+    for n in graph.nodes():
+        wx[n, n], wy[n, n] = graph.nodes[n]['pos']
+
+    # add junction position to edge
+    jx, jy = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
+    for u, v in graph.edges():
+        jx[u, v], jy[u, v] = graph[u][v]['jx_pos']
+
+    # get junction conductance to edge
+    circuit, admittance = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
+    for u, v in graph.edges():
+        circuit[u, v] = graph[u][v]['Y']
+        admittance[u, v] = graph[u][v]['g']
+
+    # get wire voltage to nodes and set grounds
+    voltage = cp.zeros(len(adjacency))
+    for n in graph.nodes():
+        voltage[n] = graph.nodes[n]['V']
+
+    network = Network(
+        adjacency=adjacency,
+        wires_position=(wx, wy),
+        junctions_position=(jx, jy),
+        circuit=circuit,
+        admittance=admittance,
+        voltage=voltage
+    )
+
+    # get ground label from node
+    for n in graph.nodes():
+        if 'ground' in graph.nodes[n]:
+            network.ground_count += 1
+
+    return network
