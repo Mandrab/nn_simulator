@@ -115,12 +115,13 @@ def nx2nn(graph: nx.Graph) -> Network:
     jx, jy = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
     for u, v in graph.edges():
         jx[u, v], jy[u, v] = graph[u][v]['jx_pos']
+        jx[v, u], jy[v, u] = jx[u, v], jy[u, v]
 
     # get junction conductance to edge
     circuit, admittance = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
     for u, v in graph.edges():
-        circuit[u, v] = graph[u][v]['Y']
-        admittance[u, v] = graph[u][v]['g']
+        circuit[u, v] = circuit[v, u] = graph[u][v]['Y']
+        admittance[u, v] = admittance[v, u] = graph[u][v]['g']
 
     # get wire voltage to nodes and set grounds
     voltage = cp.zeros(len(adjacency))
