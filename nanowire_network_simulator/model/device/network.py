@@ -65,12 +65,15 @@ def nanowire_network(
     """
 
     # get largest connected component of the network
-    graph, _ = largest_connected_component(network_data['adj_matrix'])
+    graph, mask = largest_connected_component(network_data['adj_matrix'])
 
     # create a matrix to store x and y positions of a wire
     wx, wy = tuple(cp.zeros_like(network_data['adj_matrix']) for _ in range(2))
     for matrix, _ in zip((wx, wy), ('xc', 'yc')):
         cp.fill_diagonal(matrix, network_data[_])
+
+    # reduce the matrix to the largest component one
+    wx, wy = [clear_matrix(_, mask) for _ in (wx, wy)]
 
     # create a matrix to store x and y positions of a wires junction
     adj = np.matrix.flatten(np.triu(network_data['adj_matrix']))
@@ -82,6 +85,9 @@ def nanowire_network(
         ]),
         network_data['adj_matrix'].shape
     ) for _0 in ('xi', 'yi')]
+
+    # reduce the matrix to the largest component one
+    jx, jy = [clear_matrix(_, mask) for _ in (jx, jy)]
 
     # set the initial conductance of the system
     circuit = cp.asarray([
@@ -182,6 +188,26 @@ def largest_connected_component(
 
     # get not connected nodes and delete their column and row from the matrix
     mask = [k != label for k in labels]
-    graph = np.delete(cp.asnumpy(graph), mask, 0)
-    graph = np.delete(graph, mask, 1)
-    return graph, mask
+    return clear_matrix(graph, mask), mask
+
+
+def clear_matrix(matrix: np.ndarray, mask: List[int]) -> cp.ndarray:
+    """
+    Clear a matrix removing the nodes (i.e., columns and rows) specified by the
+    mask.
+
+    Parameters
+    ----------
+    matrix: np.ndarray
+        the matrix to clean
+    mask: cp.ndarray
+        the boolean mask that specify the elements to remove. A value of true
+        means a removal
+    Returns
+    -------
+    A cp.ndarray cleaned by all the exceeding nodes
+    """
+
+    matrix = np.delete(cp.asnumpy(matrix), mask, 0)
+    matrix = np.delete(matrix, mask, 1)
+    return cp.asarray(matrix)
