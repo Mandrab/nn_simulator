@@ -86,6 +86,9 @@ def nanowire_network(
         network_data['adj_matrix'].shape
     ) for _0 in ('xi', 'yi')]
 
+    # mirror upper-diagonal of the matrix below
+    jx, jy = jx + jx.T - np.diag(np.diag(jx)), jy + jy.T - np.diag(np.diag(jy))
+
     # reduce the matrix to the largest component one
     jx, jy = [clear_matrix(_, mask) for _ in (jx, jy)]
 
