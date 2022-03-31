@@ -15,8 +15,6 @@ Included by:
 And simplified/cleaned by:
 @author: Paolo Baldini
 """
-
-import networkx as nx
 import numpy as np
 
 from itertools import combinations, count as inf
@@ -214,49 +212,38 @@ def detect_junctions(wires_dict):
     Parameters
     ----------
     wires_dict: dict
-    Returns
-    -------
-    wires_dict: dict 
-        with added keys
     """
 
     logger.debug('Detecting junctions')
     xi, yi, edge_list = [], [], []
     for first, second in combinations(range(wires_dict['number_of_wires']), 2):
 
-        def points(wire): return (
-            (wires_dict['xa'][wire], wires_dict['ya'][wire]),
-            (wires_dict['xb'][wire], wires_dict['yb'][wire])
-        )
+        def points(wire): return [
+            [wires_dict['xa'][wire], wires_dict['ya'][wire]],
+            [wires_dict['xb'][wire], wires_dict['yb'][wire]]
+        ]
 
         p0, p1 = map(np.array, points(first))
         p2, p3 = map(np.array, points(second))
 
-        # find junctions
-        junctions = find_segment_intersection(p0, p1, p2, p3)
-
-        if junctions is not False:
-
-            # save coordinates
-            xi.append(junctions[0])
-            yi.append(junctions[1])
+        # find and save junctions coordinates
+        if junction := find_segment_intersection(p0, p1, p2, p3):
+            xi.append(junction[0])
+            yi.append(junction[1])
 
             # save node indices for every edge
             edge_list.append([first, second])
 
     # save centres coordinates and edge list to dict if there are junctions
-    if len(edge_list) != 0:
+    if not edge_list:
+        raise Exception('There are no junctions in this network')
 
-        wires_dict['number_of_junctions'] = len(edge_list)
-        wires_dict['xi'] = np.asarray(xi)
-        wires_dict['yi'] = np.asarray(yi)
-        wires_dict['edge_list'] = np.asarray(edge_list)
+    wires_dict['number_of_junctions'] = len(edge_list)
+    wires_dict['xi'] = np.asarray(xi)
+    wires_dict['yi'] = np.asarray(yi)
+    wires_dict['edge_list'] = np.asarray(edge_list)
 
-        logger.debug('Finished detecting junctions')
-
-        return wires_dict
-
-    raise Exception('There are no junctions in this network')
+    logger.debug('Finished detecting junctions')
 
 
 def generate_adj_matrix(wires_dict):
@@ -268,47 +255,12 @@ def generate_adj_matrix(wires_dict):
     wires_dict: dict
         a dictionary with all the wires position and junctions/intersection 
         positions.
-    Returns
-    ------- 
-    wires_dict: dict
-        The same dictionary with added key:value pairs adjacency matrix 
     """
 
     # create array -- maybe use sparse matrix?
-    adj_matrix_shape = (
-        wires_dict['number_of_wires'], wires_dict['number_of_wires']
-    )
-    adj_matrix = np.zeros(adj_matrix_shape, dtype=np.float32)
-    adj_matrix[
-        wires_dict['edge_list'].astype(np.int32)[:, 0],
-        wires_dict['edge_list'].astype(np.int32)[:, 1]
-    ] = 1.0
+    wires_count, edges = wires_dict['number_of_wires'], wires_dict['edge_list']
+    adj_matrix = np.zeros((wires_count, wires_count), dtype=np.float32)
+    adj_matrix[edges.astype(np.int32)[:, 0], edges.astype(np.int32)[:, 1]] = 1.0
 
     # make the matrix symmetric
     wires_dict['adj_matrix'] = adj_matrix + adj_matrix.T
-
-    return wires_dict
-
-
-def generate_graph(wires_dict):
-    """
-    This function will produce a networkx graph.
-
-    Parameters
-    ----------
-    wires_dict: dict
-        a dictionary with all the wires position and junctions/intersection 
-        positions.
-    Returns
-    ------- 
-    wires_dict: dict
-        The same dictionary with added key:value pairs networkx graph object.
-    """
-
-    # Create graph - this is going to be a memory pig for large matrices
-    wires_dict = generate_adj_matrix(wires_dict)
-    graph = nx.from_numpy_matrix(np.matrix(wires_dict['adj_matrix']))
-
-    wires_dict['G'] = graph
-
-    return wires_dict
