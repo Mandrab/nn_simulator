@@ -11,5 +11,5 @@ venv
 *.gif
 *.pyc
 # EXCEPTIONS
-!test/**/*.dat
+!test/changes/*.dat
 
