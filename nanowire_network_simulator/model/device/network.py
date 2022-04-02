@@ -40,6 +40,10 @@ class Network:
 
     ground_count: int = 0
 
+    @property
+    def device_circuit(self) -> cp.ndarray:
+        return self.circuit[:-self.ground_count, :-self.ground_count]
+
 
 def nanowire_network(
         network_data: Dict[str, Any],
@@ -77,14 +81,18 @@ def nanowire_network(
 
     # create a matrix to store x and y positions of a wires junction
     adj = np.matrix.flatten(np.triu(network_data['adj_matrix']))
+
+    # set the junctions position
     jx, jy = [cp.reshape(
         cp.asarray([
-            next(iter(network_data[_0]))
+            next(_0)
             if _1 != 0 else 0
             for _1 in adj
         ]),
         network_data['adj_matrix'].shape
-    ) for _0 in ('xi', 'yi')]
+    ) for _0 in [
+        iter(network_data[k]) for k in ('xi', 'yi')
+    ]]
 
     # mirror upper-diagonal of the matrix below
     jx, jy = jx + jx.T - np.diag(np.diag(jx)), jy + jy.T - np.diag(np.diag(jy))
