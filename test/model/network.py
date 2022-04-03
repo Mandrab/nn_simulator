@@ -2,7 +2,7 @@ import cupy as cp
 
 from nanowire_network_simulator.model.device.datasheet.Datasheet import default
 from nanowire_network_simulator.model.device.network import Network
-from nanowire_network_simulator.model.device.network import connect
+from nanowire_network_simulator.model.interface.connector import connect
 
 
 def test_load_connection():
@@ -40,7 +40,7 @@ def test_load_connection():
         circuit=initial,
         admittance=cp.zeros_like(initial),
         voltage=cp.zeros_like(initial),
-        grounds=1
+        device_grounds=1
     )
     connect(network, wire_idx=2, resistance=1 / default.Y_min)
 
