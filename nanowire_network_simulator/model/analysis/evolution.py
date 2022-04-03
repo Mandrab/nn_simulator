@@ -49,7 +49,7 @@ class Evolution:
         The graph is copied before being add.
         """
 
-        self.instances.append((copy(graph), dict(stimulus)))
+        self.instances.append((copy(graph.device), dict(stimulus)))
 
     def currents_graphs(self, reverse: bool = False) -> Generator:
         """Get currents flow in the graphs. Apply in a lazy way"""
