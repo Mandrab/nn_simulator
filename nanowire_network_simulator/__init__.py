@@ -3,9 +3,10 @@ from .controller import backup
 from .model.analysis.evolution import Evolution
 from .model.analysis.measures import print_info, inspect
 from .model.device.datasheet.Datasheet import default
-from .model.device.network import connect, nanowire_network
+from .model.device.factory import nanowire_network
 from .model.device.networks import generate_network_data, nn2nx, nx2nn
 from .model.interface.factory import random_nodes, random_loads
+from .model.interface.connector import connect
 from .model.interface.evolutor import mutate, non_ground_selection
 from .model.interface.evolutor import minimum_distance_selection
 from .model.stimulator import stimulate
