@@ -1,21 +1,32 @@
-from networkx import Graph
+import cupy as cp
+
+from nanowire_network_simulator.model.device.network import Network
+from test.model.utils import stack
 
 
-def connect(graph: Graph, output: int, resistance: float) -> int:
+def connect(network: Network, wire_idx: int, resistance: float):
     """
-    Connect a device to the selected output node.
-    The device is represented by an edge with a specific resistance and it is
-    connected to a newly added ground.
-    The ground is finally returned.
+    Connect an external load to the network.
+
+    Parameters
+    ----------
+    network: Network
+        the nanowire network to connect the load to
+    wire_idx: int
+        index of the connection node of the nanowire network
+    resistance: float
+        resistance of the attached load
     """
 
-    # generate a ground id and add it to the graph
-    ground = graph.number_of_nodes()
-    graph.add_node(ground)
-    graph.nodes[ground]['V'] = 0
+    # set the row connection
+    ground_pad = cp.zeros(len(network.adjacency))
+    ground_pad[wire_idx] = 1 / resistance
 
-    # add a weighted edge between output and ground
-    graph.add_edge(output, ground)
-    graph[output][ground]['Y'] = 1 / resistance
+    # pad the matrix with the column on right and bottom
+    network.adjacency = stack(network.adjacency, ground_pad)
+    network.circuit = stack(network.circuit, ground_pad)
+    network.admittance = stack(network.admittance, ground_pad)
+    network.voltage = cp.pad(network.voltage, (0, 1))
 
-    return ground
+    # increment number of grounds
+    network.external_grounds += 1
