@@ -25,7 +25,7 @@ class Network:
         admittance matrix for the junction resistance update
     voltage: cp.ndarray
         voltages of the circuit nodes
-    ground_count: int
+    grounds: int
         specify the number of nodes to be considered ground (those have to be at
         the rightmost part of the matrix)
     """
@@ -38,17 +38,36 @@ class Network:
     admittance: cp.ndarray
     voltage: cp.ndarray
 
-    ground_count: int = 0
+    grounds: int = 0
 
     @property
-    def device_circuit(self) -> cp.ndarray:
-        return self.circuit[:-self.ground_count, :-self.ground_count]
+    def nodes(self) -> int:
+        """
+        Returns the number of nodes composing the circuit, including grounds.
+
+        Returns
+        -------
+        An integer representing the number of different nodes of the circuit:
+            # wires + # grounds
+        """
+        return len(self.adjacency)
+
+    @property
+    def wires(self) -> int:
+        """
+        Returns the number of wires composing the circuit, excluding grounds.
+
+        Returns
+        -------
+        An integer representing the number of different wires of the circuit.
+        """
+        return len(self.adjacency) - self.grounds
 
 
 def nanowire_network(
         network_data: Dict[str, Any],
         initial_conductance: float,
-        ground_count: int = 0
+        grounds: int = 0
 ) -> Network:
     """
     Generate a nanowire network according to a dictionary (a.k.a., wires_dict)
@@ -60,7 +79,7 @@ def nanowire_network(
         the dictionary description of the network
     initial_conductance: float
         the float value to set as conductance
-    ground_count: int
+    grounds: int
         number of network nodes to be considered grounds. They are the rightmost
         and bottommost ones of the resulting matrix
     Returns
@@ -88,7 +107,7 @@ def nanowire_network(
             next(_0)
             if _1 != 0 else 0
             for _1 in adj
-        ]),
+        ], dtype=cp.float32),
         network_data['adj_matrix'].shape
     ) for _0 in [
         iter(network_data[k]) for k in ('xi', 'yi')
@@ -100,20 +119,18 @@ def nanowire_network(
     # reduce the matrix to the largest component one
     jx, jy = [clear_matrix(_, mask) for _ in (jx, jy)]
 
-    # set the initial conductance of the system
-    circuit = cp.asarray([
-        [initial_conductance if _ else 0 for _ in row] for row in graph
-    ])
+    # set the initial conductance of the system on non-zero junctions
+    circuit = initial_conductance * (graph != 0)
 
     # save adjacency matrix of reduced network
     return Network(
-        adjacency=cp.asarray(graph),
+        adjacency=cp.asarray(graph, dtype=cp.float32),
         wires_position=(wx, wy),
         junctions_position=(jx, jy),
-        circuit=circuit,
+        circuit=cp.asarray(circuit, dtype=cp.float32),
         admittance=cp.zeros_like(circuit),
         voltage=cp.zeros(len(circuit)),
-        ground_count=ground_count
+        grounds=grounds
     )
 
 
@@ -148,7 +165,7 @@ def copy(network: Network, ram: bool = True) -> Network:
     adm = cp.asnumpy(network.admittance) if ram else network.admittance.copy()
     voltage = cp.asnumpy(network.voltage) if ram else network.voltage.copy()
 
-    return Network(adj, wp, jp, circuit, adm, voltage, network.ground_count)
+    return Network(adj, wp, jp, circuit, adm, voltage, network.grounds)
 
 
 def connect(network: Network, wire_idx: int, resistance: float):
@@ -177,7 +194,7 @@ def connect(network: Network, wire_idx: int, resistance: float):
     network.circuit = cp.hstack([network.circuit, ground_column.reshape(-1, 1)])
 
     # increment number of grounds
-    network.ground_count += 1
+    network.grounds += 1
 
 
 def largest_connected_component(
@@ -229,4 +246,4 @@ def clear_matrix(matrix: np.ndarray, mask: List[int]) -> cp.ndarray:
 
     matrix = np.delete(cp.asnumpy(matrix), mask, 0)
     matrix = np.delete(matrix, mask, 1)
-    return cp.asarray(matrix)
+    return cp.asarray(matrix, dtype=cp.float32)
