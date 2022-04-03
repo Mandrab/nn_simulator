@@ -52,7 +52,7 @@ def evaluate_mna_samples(circuit: cp.ndarray, expected_result: cp.ndarray):
         wires_position=tuple(), junctions_position=tuple(),
         circuit=circuit,
         admittance=cp.zeros_like(circuit),
-        voltage=cp.zeros_like(circuit),
+        voltage=cp.zeros((1, len(circuit))),
         device_grounds=1
     )
     modified_voltage_node_analysis(network, {0: 5.00})
@@ -84,8 +84,8 @@ def test_non_stimulated_change():
         adjacency=circuit.copy(),
         wires_position=tuple(), junctions_position=tuple(),
         circuit=circuit,
-        admittance=cp.zeros((1, 1)),
-        voltage=cp.zeros((1, 1)),
+        admittance=cp.zeros_like(circuit),
+        voltage=cp.zeros((1, len(circuit))),
         device_grounds=1
     )
 
@@ -109,8 +109,8 @@ def test_stimulated_change():
         adjacency=circuit.copy(),
         wires_position=tuple(), junctions_position=tuple(),
         circuit=circuit,
-        admittance=cp.zeros((1, 1)),
-        voltage=cp.zeros((1, 1)),
+        admittance=cp.zeros_like(circuit),
+        voltage=cp.zeros((1, len(circuit))),
         device_grounds=1
     )
 
