@@ -74,7 +74,7 @@ class Evolution:
 
         def _(network: Nw) -> cp.ndarray:
             centrality = nx.information_centrality(nn2nx(network), weight='Y')
-            return cp.asarray(list(centrality.values()))
+            return cp.asarray(list(centrality.values()), dtype=cp.float32)
 
         return map(_, graphs)
 
