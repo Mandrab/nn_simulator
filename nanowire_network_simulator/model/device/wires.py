@@ -90,8 +90,8 @@ def generate_wires_distribution(
 
     # Compute the Euclidean distance between pair of region centres
     wire_distances = cdist(
-        np.array([xc, yc]).T,
-        np.array([xc, yc]).T,
+        np.array([xc, yc], dtype=np.float32).T,
+        np.array([xc, yc], dtype=np.float32).T,
         metric='euclidean'
     )
 
@@ -121,7 +121,8 @@ def generate_dist_lengths(number_of_wires, wire_av_length, wire_dispersion):
 
     def positive_value(mu=wire_av_length, sigma=wire_dispersion):
         return next(x for _ in inf() if (x := np.random.normal(mu, sigma)) >= 0)
-    return np.array([positive_value() for _ in range(number_of_wires)])
+    array = [positive_value() for _ in range(number_of_wires)]
+    return np.array(array, dtype=np.float32)
 
 
 def generate_dist_orientations(number_of_wires):
@@ -239,9 +240,9 @@ def detect_junctions(wires_dict):
         raise Exception('There are no junctions in this network')
 
     wires_dict['number_of_junctions'] = len(edge_list)
-    wires_dict['xi'] = np.asarray(xi)
-    wires_dict['yi'] = np.asarray(yi)
-    wires_dict['edge_list'] = np.asarray(edge_list)
+    wires_dict['xi'] = np.asarray(xi, dtype=np.float32)
+    wires_dict['yi'] = np.asarray(yi, dtype=np.float32)
+    wires_dict['edge_list'] = np.asarray(edge_list, dtype=np.float32)
 
     logger.debug('Finished detecting junctions')
 
