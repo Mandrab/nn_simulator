@@ -1,5 +1,6 @@
 import cupy as cp
 import networkx as nx
+import numpy as np
 
 from .datasheet.Datasheet import Datasheet
 from .wires import generate_wires_distribution, detect_junctions
@@ -85,7 +86,7 @@ def nn2nx(network: Network) -> nx.Graph:
         graph[u][v]['jx_pos'] = tuple(map(float, (xs[u, v], ys[u, v])))
 
     # add ground label to node
-    for i in range(network.ground_count):
+    for i in range(network.grounds):
         graph.nodes[i]['ground'] = True
 
     return graph
@@ -105,7 +106,7 @@ def nx2nn(graph: nx.Graph) -> Network:
     Matrix format of the nanowire network
     """
 
-    adjacency = cp.asarray(nx.to_numpy_array(graph))
+    adjacency = cp.asarray(nx.to_numpy_array(graph), dtype=cp.float32)
 
     # get wires position from node
     wx, wy = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
@@ -115,8 +116,7 @@ def nx2nn(graph: nx.Graph) -> Network:
     # add junction position to edge
     jx, jy = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
     for u, v in graph.edges():
-        jx[u, v], jy[u, v] = graph[u][v]['jx_pos']
-        jx[v, u], jy[v, u] = jx[u, v], jy[u, v]
+        jx[v, u], jy[v, u] = jx[u, v], jy[u, v] = graph[u][v]['jx_pos']
 
     # get junction conductance to edge
     circuit, admittance = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
@@ -126,10 +126,10 @@ def nx2nn(graph: nx.Graph) -> Network:
         admittance[u, v] = admittance[v, u] = edge['g'] if 'g' in edge else 0
 
     # get ground label from node
-    ground_count = sum(1 for _ in graph.nodes() if 'ground' in graph.nodes[_])
+    grounds = sum(1 for _ in graph.nodes() if 'ground' in graph.nodes[_])
 
     # get wire voltage to nodes and set grounds
-    voltage = cp.zeros(len(adjacency) - ground_count)
+    voltage = cp.zeros(len(adjacency) - grounds)
     for n in graph.nodes():
         voltage[n] = graph.nodes[n]['V'] if 'V' in graph.nodes[n] else 0
 
@@ -140,7 +140,17 @@ def nx2nn(graph: nx.Graph) -> Network:
         circuit=circuit,
         admittance=admittance,
         voltage=voltage,
-        ground_count=ground_count
+        grounds=grounds
     )
 
     return network
+
+
+def to_np(array: np.ndarray | cp.ndarray) -> np.ndarray:
+    return cp.asnumpy(array) if isinstance(array, cp.ndarray) else array
+
+
+def to_cp(array: np.ndarray | cp.ndarray) -> cp.ndarray:
+    if isinstance(array, np.ndarray):
+        return cp.asarray(array, dtype=cp.float32)
+    return array
