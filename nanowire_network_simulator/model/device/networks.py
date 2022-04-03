@@ -77,16 +77,16 @@ def nn2nx(network: Network) -> nx.Graph:
 
     # add wires position to node
     xs, ys = network.wires_position
-    for n in graph.nodes():
-        graph.nodes[n]['pos'] = tuple(map(float, (xs[n, n], ys[n, n])))
+    for n, (x, y) in enumerate(zip(cp.diag(xs), cp.diag(ys))):
+        graph.nodes[n]['pos'] = float(x), float(y)
 
     # add junction position to edge
     xs, ys = network.junctions_position
-    for u, v in graph.edges():
-        graph[u][v]['jx_pos'] = tuple(map(float, (xs[u, v], ys[u, v])))
+    for x, y in map(lambda _: map(int, _), zip(*cp.where(xs != 0))):
+        graph[x][y]['jx_pos'] = float(xs[x, y]), float(ys[x, y])
 
     # add ground label to node
-    for i in range(network.grounds):
+    for i in range(len(graph.nodes) - network.grounds, len(graph.nodes)):
         graph.nodes[i]['ground'] = True
 
     return graph
