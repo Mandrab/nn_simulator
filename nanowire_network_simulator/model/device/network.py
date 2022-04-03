@@ -3,6 +3,7 @@ import numpy as np
 
 from dataclasses import dataclass
 from scipy.sparse.csgraph import connected_components
+from test.model.utils import stack
 from typing import Tuple, Dict, Any, List
 
 
@@ -183,15 +184,14 @@ def connect(network: Network, wire_idx: int, resistance: float):
     """
 
     # set the row connection
-    ground_column = cp.zeros(len(network.circuit))
-    ground_column[wire_idx] = 1 / resistance
+    ground_pad = cp.zeros(len(network.adjacency))
+    ground_pad[wire_idx] = 1 / resistance
 
-    # add row to bottom
-    network.circuit = cp.vstack([network.circuit, ground_column])
-
-    # transform to column and add to right
-    ground_column = cp.pad(ground_column, (0, 1), 'constant')
-    network.circuit = cp.hstack([network.circuit, ground_column.reshape(-1, 1)])
+    # pad the matrix with the column on right and bottom
+    network.adjacency = stack(network.adjacency, ground_pad)
+    network.circuit = stack(network.circuit, ground_pad)
+    network.admittance = stack(network.admittance, ground_pad)
+    network.voltage = cp.pad(network.voltage, (0, 1))
 
     # increment number of grounds
     network.grounds += 1
