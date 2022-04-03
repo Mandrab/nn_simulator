@@ -35,11 +35,11 @@ def test_load_connection():
     ], dtype=cp.float32)
 
     network = Network(
-        adjacency=cp.zeros((1, 1)),
+        adjacency=cp.zeros_like(initial),
         wires_position=tuple(), junctions_position=tuple(),
         circuit=initial,
-        admittance=cp.zeros((1, 1)),
-        voltage=cp.zeros((1, 1)),
+        admittance=cp.zeros_like(initial),
+        voltage=cp.zeros_like(initial),
         grounds=1
     )
     connect(network, wire_idx=2, resistance=1 / default.Y_min)
