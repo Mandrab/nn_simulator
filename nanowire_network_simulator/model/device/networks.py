@@ -129,7 +129,7 @@ def nx2nn(graph: nx.Graph) -> Network:
     grounds = sum(1 for _ in graph.nodes() if 'ground' in graph.nodes[_])
 
     # get wire voltage to nodes and set grounds
-    voltage = cp.zeros(len(adjacency) - grounds)
+    voltage = cp.zeros(len(adjacency))
     for n in graph.nodes():
         voltage[n] = graph.nodes[n]['V'] if 'V' in graph.nodes[n] else 0
 
