@@ -53,7 +53,7 @@ def evaluate_mna_samples(circuit: cp.ndarray, expected_result: cp.ndarray):
         circuit=circuit,
         admittance=cp.zeros_like(circuit),
         voltage=cp.zeros_like(circuit),
-        grounds=1
+        device_grounds=1
     )
     modified_voltage_node_analysis(network, {0: 5.00})
     assert cp.allclose(network.voltage[:-1], expected_result)
@@ -62,6 +62,16 @@ def evaluate_mna_samples(circuit: cp.ndarray, expected_result: cp.ndarray):
 def test_samples():
     for circuit, expected_result in samples:
         evaluate_mna_samples(cp.asarray(circuit), cp.asarray(expected_result))
+
+
+# # delta voltage calculation
+# voltage = cp.array([7, 5, 0], dtype=cp.float32)
+# adj = cp.array([
+#     [0, 1, 0],
+#     [1, 0, 0],
+#     [0, 0, 0]
+# ], dtype=cp.float32)
+# print(cp.absolute(adj * (voltage.reshape(-1, 1) - adj * voltage)))
 
 
 def test_non_stimulated_change():
@@ -76,7 +86,7 @@ def test_non_stimulated_change():
         circuit=circuit,
         admittance=cp.zeros((1, 1)),
         voltage=cp.zeros((1, 1)),
-        grounds=1
+        device_grounds=1
     )
 
     # update the network to let the simulator converge to stable values
@@ -101,7 +111,7 @@ def test_stimulated_change():
         circuit=circuit,
         admittance=cp.zeros((1, 1)),
         voltage=cp.zeros((1, 1)),
-        grounds=1
+        device_grounds=1
     )
 
     # update the network to let the simulator converge to stable values
