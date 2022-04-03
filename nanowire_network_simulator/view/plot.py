@@ -162,12 +162,12 @@ def network_conductance(fig, ax1, plot_data: Evolution, **_1):
 
 def voltage_distribution(_, ax, plot_data: Evolution, **others):
     """Plot the voltage distribution (intensity) of the initial graph"""
-    graph = nn2nx(next(plot_data.currents_graphs()))
     draw_network(
-        graph,
-        plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
+        nn2nx(graph := plot_data.graph), plot_data.sources,
+        set(range(len(graph.voltage) - graph.grounds, len(graph.voltage))),
+        {n for n, _ in plot_data.loads},
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max,
-        normal_node_colors=[graph.nodes[n]['V'] for n in graph.nodes()],
+        normal_node_colors=graph.voltage / 10,
         **dicts(others, default=dict(ax=ax), others=dict(ax=ax))
     )
 
@@ -283,7 +283,7 @@ def animation_kamada_kawai(fig, ax, plot_data: Evolution, **others):
     ).save('animation_2.gif', writer=ImageMagickWriter(fps=2))
 
 
-def outputs(_, ax, plot_data: Evolution, **_1):  # todo defined by paolo
+def outputs(_, ax, plot_data: Evolution, **_1):
     """Plot the voltage variation on the output nodes"""
 
     # get sequence of voltage on each output node
