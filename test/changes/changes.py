@@ -1,8 +1,13 @@
+import cupy as cp
 import json
 import networkx as nx
+import numpy as np
 
-from collections.abc import Iterable
-from main import *
+from itertools import product
+from nanowire_network_simulator import *
+from nanowire_network_simulator.logger import *
+from nanowire_network_simulator.model.device.network import \
+    largest_connected_component
 
 
 ################################################################################
@@ -11,105 +16,102 @@ from main import *
 def import_graph(file_name):
     with open(file_name, 'r') as file:
         text = json.load(file)
-        g = nx.node_link_graph(text)
-    return g
+        graph = nx.node_link_graph(text)
+    return graph
 
 
 def are_equal(g1, g2):
-    default_precision = 1e-4
-    g_precision = 1e-2
-    r_precision = 20
+    assert cp.allclose(g1.adjacency, g2.adjacency)
+    assert cp.allclose(g1.wires_position[0], g2.wires_position[0])
+    assert cp.allclose(g1.wires_position[1], g2.wires_position[1])
+    assert cp.allclose(g1.junctions_position[0], g2.junctions_position[0])
+    assert cp.allclose(g1.junctions_position[1], g2.junctions_position[1])
 
-    def equals(v1, v2, precision):
+    assert cp.allclose(g1.circuit, g2.circuit, rtol=1e-3, atol=1e-3)
+    assert cp.allclose(g1.admittance, g2.admittance, rtol=1e-3, atol=1e-3)
+    assert cp.allclose(g1.voltage, g2.voltage, rtol=1e-3, atol=1e-3)
 
-        if isinstance(v1, Iterable):
-            iterable = iter(v2)
-            for e1 in value:
-                e2 = next(iterable)
-                if abs(e1 - e2) > precision:
-                    logging.error(f'For {key}: expected {v1:.4f}, got {v2:.4f}')
-        elif abs(v1 - v2) > precision:
-            logging.error(f'For {key}: expected {v1:.4f}, got {v2:.4f}')
-
-    for node in g1.nodes():
-        for key, value in g1.nodes[node].items():
-            other = g2.nodes[node][key]
-            equals(value, other, default_precision)
-
-    for source, destination in g1.edges():
-        for key, value in g1[source][destination].items():
-            other = g2[source][destination][key]
-            if key == 'R':
-                equals(value, other, r_precision)
-            else:
-                equals(value, other, g_precision)
+    assert g1.grounds == g2.grounds
 
 
 ################################################################################
 # NETWORK SETUP
 
+
+def test_data_equality():
+    wires_dict = generate_network_data(default)
+
+    with open('changes/wires.dat', 'r') as file:
+        expected = json.load(file)
+
+    assert sorted(wires_dict.keys()) == sorted(expected.keys())
+    for k in sorted(wires_dict.keys()):
+        value_a, value_b = wires_dict[k], expected[k]
+        if isinstance(value_b, list):
+            np.allclose(value_a, np.asarray(value_b))
+        else:
+            assert value_a == value_b
+
+
 def test_original_behaviour():
     """Test that the modified simulator behaves as the original one"""
 
-    wires_dict = generate_network(default)
-    graph = get_graph(wires_dict)
+    # generate the network
+    wires_dict = generate_network_data(default)
+    network = nanowire_network(wires_dict, default.Y_min)
 
-    expected = import_graph('test/creation.dat')
-    are_equal(graph, expected)
-    logging.info('TEST: created graphs are equals')
+    # get the deleted nodes mask
+    _, mask = largest_connected_component(wires_dict['adj_matrix'])
 
-    grounds = {358}
-    sources = {273}
+    # calculate the new index of original source (i.e. 274)
+    source = 274 - sum(mask[:274])
 
-    removed_nodes = [
-        n for n in graph.nodes()
-        if not nx.has_path(graph, n, next(iter(grounds)))
-    ]
-    graph.remove_nodes_from(removed_nodes)
-    mapping = dict(zip(graph, range(graph.number_of_nodes())))
-    graph = nx.relabel_nodes(graph, mapping)
-    grounds = {mapping[g] for g in grounds}
-    sources = {mapping[s] for s in sources}
+    # set ground node in the network
+    network.grounds += 1
 
-    expected = import_graph('test/simplification.dat')
-    are_equal(graph, expected)
+    expected = import_graph('changes/simplification.dat')
+    expected = nx2nn(expected)
+    expected.grounds += 1
+
+    are_equal(network, expected)
     logging.info('TEST: simplified graphs are equals')
 
     ############################################################################
     # ELECTRICAL STIMULATION
 
-    logging.info('Electrical stimulation of the network')
+    logging.debug('Electrical stimulation of the network')
 
-    steps = 90              # simulation duration
-    pulse_duration = 10     # duration of a stimulation pulse (in steps)
-    reads = 80              # reads at output
-    pulse_count = 1         # number of stimulation pulses
-    delta_t = 0.05          # virtual time delta
-
-    v = 10.0                # pulse amplitude of stimulation
+    pulse_duration, reads = 10, 80
+    v, delta_t = 10.0, 0.05
 
     # generate vin stimulation for each input
-    stimulations = [v] * pulse_duration * pulse_count + [0.01] * reads
-    stimulations = [
-        [(source, stimulations[i]) for source in sources]
-        for i in range(steps)
-    ]
+    stimulation = [v] * pulse_duration + [0.01] * reads
+    stimulation = list(product([source], stimulation))
 
     # growth of the conductive path
-    logging.info('Growth of the conductive path')
+    logging.debug('Growth of the conductive path')
 
-    # initialize network
-    initialize_graph_attributes(graph, sources, grounds, default.Y_min)
-    voltage_initialization(graph, sources, grounds)
+    # first stimulation comparison
+    stimulate(network, default, delta_t, dict([stimulation[0]]))
 
-    expected = import_graph('test/initialization.dat')
-    are_equal(graph, expected)
-    logging.info('TEST: initialized graphs are equals')
+    expected = import_graph('changes/stimulation_1.dat')
+    expected = nx2nn(expected)
+    expected.grounds += 1
+
+    are_equal(network, expected)
 
     # growth over time
-    for i in range(steps):
-        stimulate(graph, default, delta_t, stimulations[i], [], grounds)
+    for signal in stimulation[1:]:
+        stimulate(network, default, delta_t, dict([signal]))
 
-    expected = import_graph('test/stimulation.dat')
-    are_equal(graph, expected)
+    expected = import_graph('changes/stimulation.dat')
+    expected = nx2nn(expected)
+    expected.grounds += 1
+
+    are_equal(network, expected)
+
     logging.info('TEST: stimulated graphs are equals')
+
+
+test_data_equality()
+test_original_behaviour()
