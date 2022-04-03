@@ -35,14 +35,11 @@ def stimulate(
 
 
 def update_conductance(graph: Network, datasheet: Datasheet, delta_time: float):
-    """
-    Update edges weights (Miranda's model)
-    TODO exclude grounds: their y is overwritten
-    """
+    """Update edges weights (Miranda's model)"""
 
     # calculate delta voltage on a junction
-    delta_v = graph.voltage.reshape(-1, 1) - graph.adjacency * graph.voltage
-    delta_v = cp.absolute(delta_v)
+    delta_v = graph.device.adjacency * graph.device.voltage
+    delta_v = cp.absolute(graph.device.voltage.reshape(-1, 1) - delta_v)
 
     # excitation and depression rate coefficients
     kp = datasheet.kp0 * cp.exp(datasheet.eta_p * delta_v)
@@ -50,12 +47,12 @@ def update_conductance(graph: Network, datasheet: Datasheet, delta_time: float):
     kpd = kp + kd
 
     # calculate and set admittance [0-1]
-    partial = kd / kp * graph.admittance * cp.exp(-delta_time * kpd)
-    graph.admittance = graph.adjacency * kp / kpd * (1 + partial)
+    partial = kd / kp * graph.device.admittance * cp.exp(-delta_time * kpd)
+    graph.device.admittance = graph.device.adjacency * kp / kpd * (1 + partial)
 
     # calculate and set circuit conductance
-    partial = graph.admittance * (datasheet.Y_max - datasheet.Y_min)
-    graph.circuit = graph.adjacency * (datasheet.Y_min + partial)
+    partial = graph.device.admittance * (datasheet.Y_max - datasheet.Y_min)
+    graph.device.circuit = graph.device.adjacency * (datasheet.Y_min + partial)
 
 
 def modified_voltage_node_analysis(network: Network, inputs: Dict[int, float]):
@@ -72,11 +69,11 @@ def modified_voltage_node_analysis(network: Network, inputs: Dict[int, float]):
     # the ground nodes are not present
     voltages = [v for _, v in sorted(inputs.items())]
     voltages = cp.asarray(voltages, dtype=cp.float32)
-    Z = cp.append(cp.zeros(network.nodes - network.grounds), voltages)
+    Z = cp.append(cp.zeros(network.wires), voltages)
 
     # create a vector to identify the sources (1: source, 0: non-source)
     # each column contains only one '1': there is 1 column for each source
-    B = cp.zeros(shape=(network.nodes - network.grounds, len(inputs)))
+    B = cp.zeros((network.wires, len(inputs)))
     for idx, source in enumerate(inputs):
         B[source][idx] = 1
 

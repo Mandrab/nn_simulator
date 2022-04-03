@@ -6,7 +6,7 @@ import numpy as np
 from itertools import product
 from nanowire_network_simulator import *
 from nanowire_network_simulator.logger import *
-from nanowire_network_simulator.model.device.network import \
+from nanowire_network_simulator.model.device.factory import \
     largest_connected_component
 
 
@@ -27,8 +27,8 @@ def are_equal(g1, g2):
     assert cp.allclose(g1.junctions_position[0], g2.junctions_position[0])
     assert cp.allclose(g1.junctions_position[1], g2.junctions_position[1])
 
-    assert cp.allclose(g1.circuit, g2.circuit, rtol=1e-3, atol=1e-3)
-    assert cp.allclose(g1.admittance, g2.admittance, rtol=1e-3, atol=1e-3)
+    assert cp.allclose(g1.circuit, g2.circuit, atol=1e-4)
+    assert cp.allclose(g1.admittance, g2.admittance, atol=1e-3)
     assert cp.allclose(g1.voltage, g2.voltage, rtol=1e-3, atol=1e-3)
 
     assert g1.grounds == g2.grounds
@@ -67,11 +67,11 @@ def test_original_behaviour():
     source = 274 - sum(mask[:274])
 
     # set ground node in the network
-    network.grounds += 1
+    network.device_grounds += 1
 
     expected = import_graph('changes/simplification.dat')
     expected = nx2nn(expected)
-    expected.grounds += 1
+    expected.device_grounds += 1
 
     are_equal(network, expected)
     logging.info('TEST: simplified graphs are equals')
@@ -96,7 +96,7 @@ def test_original_behaviour():
 
     expected = import_graph('changes/stimulation_1.dat')
     expected = nx2nn(expected)
-    expected.grounds += 1
+    expected.device_grounds += 1
 
     are_equal(network, expected)
 
@@ -106,7 +106,7 @@ def test_original_behaviour():
 
     expected = import_graph('changes/stimulation.dat')
     expected = nx2nn(expected)
-    expected.grounds += 1
+    expected.device_grounds += 1
 
     are_equal(network, expected)
 

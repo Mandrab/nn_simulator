@@ -90,8 +90,10 @@ def nn2nx(network: Network) -> nx.Graph:
         graph[u][v]['jx_pos'] = float(x), float(y)
 
     # add ground label to node
-    for i in range(len(graph.nodes) - network.grounds, len(graph.nodes)):
+    for i in range(network.wires, network.nodes):
         graph.nodes[i]['ground'] = True
+        if i >= network.wires + network.device_grounds:
+            graph.nodes[i]['external'] = True
 
     return graph
 
@@ -130,7 +132,8 @@ def nx2nn(graph: nx.Graph) -> Network:
         admittance[u, v] = admittance[v, u] = edge['g'] if 'g' in edge else 0
 
     # get ground label from node
-    grounds = sum(1 for _ in graph.nodes() if 'ground' in graph.nodes[_])
+    d_grounds = sum(1 for _ in graph.nodes() if 'ground' in graph.nodes[_])
+    e_grounds = sum(1 for _ in graph.nodes() if 'external' in graph.nodes[_])
 
     # get wire voltage to nodes and set grounds
     voltage = cp.zeros(len(adjacency))
@@ -144,7 +147,8 @@ def nx2nn(graph: nx.Graph) -> Network:
         circuit=circuit,
         admittance=admittance,
         voltage=voltage,
-        grounds=grounds
+        device_grounds=d_grounds,
+        external_grounds=e_grounds
     )
 
     return network
