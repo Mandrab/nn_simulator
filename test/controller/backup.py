@@ -25,7 +25,7 @@ def test_save_and_import_completeness():
     assert cp.allclose(i_nn.circuit, f_nn.circuit)
     assert cp.allclose(i_nn.admittance, f_nn.admittance)
     assert cp.allclose(i_nn.voltage, f_nn.voltage)
-    assert i_nn.ground_count == f_nn.ground_count
+    assert i_nn.grounds == f_nn.grounds
 
     assert i_default == f_datasheet
 
