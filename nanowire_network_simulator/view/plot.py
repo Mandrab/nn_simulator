@@ -232,7 +232,7 @@ def animation(fig, ax, plot_data: Evolution, **others):
             vmin=-5, vmax=10,
             # EDGES
             width=4,
-            edge_color=[hs[i][u][v]['Y'] for u, v in hs[i].edges()],
+            edge_color=[hs[i][u][v].get('Y') for u, v in hs[i].edges()],
             edge_cmap=plt.cm.get_cmap('Reds'),
             edge_vmin=plot_data.datasheet.Y_min,
             edge_vmax=plot_data.datasheet.Y_max,
@@ -267,7 +267,7 @@ def animation_kamada_kawai(fig, ax, plot_data: Evolution, **others):
             vmin=-5, vmax=10,
             # EDGES
             width=4,
-            edge_color=[hs[i][u][v]['Y'] for u, v in hs[i].edges()],
+            edge_color=[hs[i][u][v].get('Y') for u, v in hs[i].edges()],
             edge_cmap=plt.cm.get_cmap('Reds'),
             edge_vmin=plot_data.datasheet.Y_min,
             edge_vmax=plot_data.datasheet.Y_max,
