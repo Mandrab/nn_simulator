@@ -1,5 +1,4 @@
 import cupy as cp
-import numpy as np
 
 from nanowire_network_simulator.model.device.datasheet.Datasheet import default
 from nanowire_network_simulator.model.device.network import Network
@@ -22,18 +21,18 @@ def test_load_connection():
     G   0 0 1 0
     """
 
-    initial = 10e-3 * np.array([
+    initial = 10e-3 * cp.array([
         [0, 1, 0],
         [1, 0, 1],
         [0, 1, 0]
-    ])
+    ], dtype=cp.float32)
 
-    final = 10e-3 * np.array([
+    final = 10e-3 * cp.array([
         [0, 1, 0, 0],
         [1, 0, 1, 0],
         [0, 1, 0, 1],
         [0, 0, 1, 0]
-    ])
+    ], dtype=cp.float32)
 
     network = Network(
         adjacency=cp.zeros((1, 1)),
@@ -41,11 +40,11 @@ def test_load_connection():
         circuit=initial,
         admittance=cp.zeros((1, 1)),
         voltage=cp.zeros((1, 1)),
-        ground_count=1
+        grounds=1
     )
     connect(network, wire_idx=2, resistance=1 / default.Y_min)
 
-    assert cp.allclose(network.circuit, cp.array(final), 10e-3, 10e-3)
+    assert cp.allclose(network.circuit, final, 10e-3, 10e-3)
 
 
 test_load_connection()
