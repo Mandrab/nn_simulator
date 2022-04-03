@@ -92,7 +92,7 @@ def read(
         wires = json.load(file)
         wires = dict([
             (key, value) if not isinstance(value, list)
-            else (key, np.asarray(value))
+            else (key, np.asarray(value, dtype=np.float32))
             for key, value in wires.items()
         ])
 
