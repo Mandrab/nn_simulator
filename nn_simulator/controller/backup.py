@@ -9,7 +9,7 @@ from nn_simulator.model.device.datasheet import factory
 from nn_simulator.model.device.network import Network
 from nn_simulator.model.device.networks import nn2nx, nx2nn
 from os.path import exists as e
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Any, Tuple
 
 __DATASHEET_FILE = "datasheet.dat"
 __GRAPH_FILE = "graph.dat"
@@ -27,7 +27,28 @@ def save(
         wires_file: str = __WIRES_FILE,
         connections_file: str = __CONNECTIONS_FILE
 ):
-    """Save the graph, datasheet and wires to files"""
+    """
+    Save the datasheet, graph, wires and connections to file.
+
+    Parameters
+    ----------
+    datasheet: Datasheet
+        The technical representation of the network
+    network: Network
+        Simulation of the physical network
+    wires: Dict
+        Network definition support
+    connections: Dict
+        Map of transducers name and input node
+    datasheet_file: str
+        Name of the file where to save the datasheet
+    graph_file: str
+        Name of the file where to save the graph
+    wires_file: str
+        Name of the file where to save the wires
+    connections_file: str
+        Name of the file where to save the connections
+    """
 
     logger.info("Saving graph to file")
 
@@ -61,9 +82,26 @@ def exist(
         wires_file: str = __WIRES_FILE,
         connections_file: str = __CONNECTIONS_FILE
 ) -> Iterable[bool]:
-    """Check if graph, datasheet and wires files exists"""
+    """
+    Check if graph, datasheet and wires files exists.
 
-    return e(graph_file), e(datasheet_file), e(wires_file), e(connections_file)
+    Parameters
+    ----------
+    datasheet_file: str
+        Name of the datasheet file
+    graph_file: str
+        Name of the graph file
+    wires_file: str
+        Name of the wires file
+    connections_file: str
+        Name of the connections file
+
+    Returns
+    -------
+    An sequence of boolean representing existence (True) or not (False)
+    """
+
+    return map(e, (graph_file, datasheet_file, wires_file, connections_file))
 
 
 def read(
@@ -71,8 +109,25 @@ def read(
         graph_file: str = __GRAPH_FILE,
         wires_file: str = __WIRES_FILE,
         connections_file: str = __CONNECTIONS_FILE
-) -> (Network, Datasheet, Dict, Dict):
-    """Read graph, datasheet and wires from the files and import them"""
+) -> Tuple[Network, Datasheet, Dict[str, Any], Dict[str, int]]:
+    """
+    Read graph, datasheet and wires from the files and import them.
+
+    Parameters
+    ----------
+    datasheet_file: str
+        Name of the datasheet file
+    graph_file: str
+        Name of the graph file
+    wires_file: str
+        Name of the wires file
+    connections_file: str
+        Name of the connections file
+
+    Returns
+    -------
+    A tuple containing the network, datasheet, wires and connections.
+    """
 
     logger.info("Importing graph from file")
 
