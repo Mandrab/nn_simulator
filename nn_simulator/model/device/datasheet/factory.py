@@ -1,4 +1,5 @@
-from .Datasheet import Datasheet
+from nn_simulator.model.device.datasheet.Datasheet import Datasheet
+from typing import Dict
 
 
 def from_density(
@@ -7,7 +8,24 @@ def from_density(
         wires_length: float,
         seed: int = Datasheet.seed
 ) -> Datasheet:
-    """Returns a Datasheet that represents a device with a given density."""
+    """
+    Returns a Datasheet that represents a device with a given density.
+
+    Parameters
+    ----------
+    density: float
+        Desired network density
+    size: int
+        Device package size (micro-meter)
+    wires_length: float
+        Length of a single nanowire (micro-meter)
+    seed: int
+        Generation seed
+
+    Returns
+    -------
+    The datasheet of a device respecting the specified constraints.
+    """
 
     # calculate number of needed wires to reach the density
     wires = int(density * size ** 2 / wires_length ** 2)
@@ -19,8 +37,19 @@ def from_density(
     )
 
 
-def from_dict(dictionary: dict) -> Datasheet:
-    """Returns a Datasheet from its dict representation."""
+def from_dict(dictionary: Dict) -> Datasheet:
+    """
+    Returns a Datasheet from its dict representation.
+
+    Parameters
+    ----------
+    dictionary: Dict
+        The dictionary representation of the datasheet
+    Returns
+    -------
+    The datasheet of a device respecting the constraints specified in the
+    dictionary.
+    """
 
     # get a default datasheet
     datasheet = Datasheet()
