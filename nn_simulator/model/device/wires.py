@@ -20,7 +20,7 @@ import numpy as np
 from itertools import combinations, count as inf
 from nn_simulator.logger import logger
 from scipy.spatial.distance import cdist
-from typing import Dict
+from typing import Dict, Any, Tuple
 
 
 def generate_wires_distribution(
@@ -32,47 +32,45 @@ def generate_wires_distribution(
         Lx: int = 3e3,
         Ly: int = 3e3,
         seed: int = 42
-) -> Dict:
+) -> Dict[str, Any]:
     """
     Drops nano-wires on the device of sides Lx, Ly. 
 
     Parameters
     ----------
-    number_of_wires : int 
+    number_of_wires: int 
         Total number of wires to be sampled
-    wire_av_length : float 
+    wire_av_length: float 
         Average wire length in mum (default = 14)
-    wire_dispersion : float 
+    wire_dispersion: float 
         Dispersion/scale of length distribution in mum
-    centroid_dispersion : float 
+    centroid_dispersion: float 
         Scale parameter for the general normal distribution from 
         which centroids of wires are drawn in mum
-    general_normal_shape : float 
+    general_normal_shape: float 
         Shape parameter of the general normal distribution from 
         which centroids of wires are drawn. As this number increases, 
         the distribution approximates a uniform distribution.
-    Lx : float 
+    Lx: float 
         Horizontal length of the device in mum
-    Ly : float 
+    Ly: float 
         Vertical length of the device in mum
-    seed : int
+    seed: int
         Seed of the random number generator to always generate the same
         distribution
 
     Returns
     -------
-    dict
-        A dictionary with the centre coordinates, the end point coordinates, and
-        orientations. The `outside` key in the dictionary is 1 when
-        the wire intersects an edge of the device and is 0 otherwise.
+    A dictionary with the centre coordinates, the end point coordinates, and
+    orientations. The `outside` key in the dictionary is 1 when
+    the wire intersects an edge of the device and is 0 otherwise.
     """
 
     np.random.seed(seed)
 
     # wire lengths
     wire_lengths = generate_dist_lengths(
-        number_of_wires, wire_av_length,
-        wire_dispersion
+        number_of_wires, wire_av_length, wire_dispersion
     )
 
     # generate centroids distribution (?)
@@ -116,8 +114,27 @@ def generate_wires_distribution(
     )
 
 
-def generate_dist_lengths(number_of_wires, wire_av_length, wire_dispersion):
-    """Generates the distribution of wire lengths."""
+def generate_dist_lengths(
+        number_of_wires: int,
+        wire_av_length: float,
+        wire_dispersion: float
+) -> np.ndarray:
+    """
+    Generates the distribution of wire lengths.
+
+    Parameters
+    ----------
+    number_of_wires: int
+        In the device
+    wire_av_length: float
+        Average length of a wire
+    wire_dispersion: float
+        In the device
+
+    Returns
+    -------
+    A numpy ndarray of the distribution.
+    """
 
     def positive_value(mu=wire_av_length, sigma=wire_dispersion):
         return next(x for _ in inf() if (x := np.random.normal(mu, sigma)) >= 0)
@@ -125,12 +142,12 @@ def generate_dist_lengths(number_of_wires, wire_av_length, wire_dispersion):
     return np.array(array, dtype=np.float32)
 
 
-def generate_dist_orientations(number_of_wires):
+def generate_dist_orientations(number_of_wires) -> np.ndarray:
     # uniform random angle in [0,pi)
     return np.random.rand(int(number_of_wires)) * np.pi
 
 
-def find_segment_intersection(p0, p1, p2, p3):
+def find_segment_intersection(p0, p1, p2, p3) -> bool | Tuple[float, float]:
     """
     Find *line segments* intersection using line equations and 
     some boundary conditions.
@@ -144,18 +161,18 @@ def find_segment_intersection(p0, p1, p2, p3):
 
     Parameters
     ----------
-    p0 : array
+    p0: array
         x, y coordinates of first wire's start point 
-    p1 : array
+    p1: array
         x, y coordinates of first wire's end point
-    p2 : array
+    p2: array
         x, y coordinates of second wire's start point 
-    p3 : array
+    p3: array
         x, y coordinates of second wire's end point
     Returns
     -------
-    xi, yi: float 
-       x, y coordinates of the intersection
+    The x, y coordinates of the intersection or False if the wires do not
+    intersect.
     TODO: + change input to a list instead of individual points; or,
           + make point a class with x, y coordinates so we avoid using 
           indexing (x: pX[0]; y:pX[1])
@@ -204,7 +221,7 @@ def find_segment_intersection(p0, p1, p2, p3):
     return xi, yi
 
 
-def detect_junctions(wires_dict):
+def detect_junctions(wires_dict: Dict[str, Any]):
     """
     Find all the pairwise intersections of the wires contained in wires_dict.
     Adds four keys to the dictionary: junction coordinates, edge list, and
@@ -212,7 +229,8 @@ def detect_junctions(wires_dict):
 
     Parameters
     ----------
-    wires_dict: dict
+    wires_dict: Dict[str, Any]
+        The wires distribution container
     """
 
     logger.debug('Detecting junctions')
@@ -249,7 +267,7 @@ def detect_junctions(wires_dict):
 
 def generate_adj_matrix(wires_dict):
     """
-    This function will produce adjacency matrix of the physical network
+    This function will produce adjacency matrix of the physical network.
 
     Parameters
     ----------

@@ -111,7 +111,7 @@ def copy(network: Network, ram: bool = True) -> Network:
         to the RAM
     Returns
     -------
-    A copy of the input nanowire network
+    A copy of the input nanowire network.
     """
     xw, yw = network.wires_position
     xj, yj = network.junctions_position

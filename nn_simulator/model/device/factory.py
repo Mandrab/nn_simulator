@@ -1,8 +1,8 @@
 import cupy as cp
 import numpy as np
 
-from scipy.sparse.csgraph import connected_components
 from nn_simulator.model.device.network import Network
+from scipy.sparse.csgraph import connected_components
 from typing import Dict, Any, List, Tuple
 
 
@@ -26,7 +26,7 @@ def nanowire_network(
         and bottommost ones of the resulting matrix
     Returns
     -------
-    A Network instance of the largest connected component
+    A Network instance of the largest connected component.
     """
 
     # get largest connected component of the network
@@ -88,8 +88,8 @@ def largest_connected_component(
         the adjacency matrix that represents the network
     Returns
     -------
-    The matrix of the largest connected component
-    The mask of the removed nodes
+    The matrix of the largest connected component.
+    The mask of the removed nodes.
     """
 
     # get list of nodes membership in the graph
@@ -120,7 +120,7 @@ def clear_matrix(matrix: np.ndarray, mask: List[int]) -> cp.ndarray:
         means a removal
     Returns
     -------
-    A cp.ndarray cleaned by all the exceeding nodes
+    A cupy ndarray cleaned by all the exceeding nodes.
     """
 
     matrix = np.delete(cp.asnumpy(matrix), mask, 0)
