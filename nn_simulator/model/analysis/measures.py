@@ -41,7 +41,16 @@ largest_component_statistics: Dict[str, Callable[[Graph], str]] = {
 
 
 def print_info(key: str, graph: Graph):
-    """Print a specific measure of the network"""
+    """
+    Print a specific measure of the network.
+
+    Parameters
+    ----------
+    key: str
+        Name of the measure to print
+    graph: Graph
+        Networkx graph to analyse
+    """
 
     if key in global_statistics:
         logger.info(__FORMAT % (key, str(global_statistics[key](graph))))
@@ -51,7 +60,14 @@ def print_info(key: str, graph: Graph):
 
 
 def inspect(network: Network):
-    """Print all the measures/statistics of the graph"""
+    """
+    Print all the measures/statistics of the graph.
+
+    Parameters
+    ----------
+    network: Network
+        The Network to analyse
+    """
 
     # convert matrix representation to graph one
     graph = nn2nx(network)
