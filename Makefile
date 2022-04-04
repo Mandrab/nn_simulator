@@ -11,6 +11,6 @@ activate_env:
 	source venv/bin/activate
 
 clear:
-	rm -rf build dist .eggs
+	rm -rf build dist .eggs connections.dat datasheet.dat graph.dat wires.dat
 
 .PHONY: dist test install activate_env clear
