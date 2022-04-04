@@ -1,9 +1,9 @@
 import cupy as cp
 
-from nanowire_network_simulator import default
-from nanowire_network_simulator.model.device.network import Network
-from nanowire_network_simulator.model.stimulator import \
-    modified_voltage_node_analysis, update_conductance
+from nn_simulator import default
+from nn_simulator.model.device.network import Network
+from nn_simulator.model.stimulator import modified_voltage_node_analysis
+from nn_simulator.model.stimulator import update_conductance
 
 samples = [
     (

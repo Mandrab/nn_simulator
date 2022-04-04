@@ -1,7 +1,7 @@
 import cupy as cp
 
-from nanowire_network_simulator.model.device.network import Network
-from nanowire_network_simulator.model.device.networks import to_cp
+from nn_simulator.model.device.network import Network
+from nn_simulator.model.device.networks import to_cp
 
 
 def delta_voltage(network: Network) -> cp.ndarray:

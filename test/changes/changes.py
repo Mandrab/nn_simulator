@@ -4,10 +4,9 @@ import networkx as nx
 import numpy as np
 
 from itertools import product
-from nanowire_network_simulator import *
-from nanowire_network_simulator.logger import *
-from nanowire_network_simulator.model.device.factory import \
-    largest_connected_component
+from nn_simulator import *
+from nn_simulator.logger import *
+from nn_simulator.model.device.factory import largest_connected_component
 
 
 ################################################################################

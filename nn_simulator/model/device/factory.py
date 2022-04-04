@@ -2,7 +2,7 @@ import cupy as cp
 import numpy as np
 
 from scipy.sparse.csgraph import connected_components
-from nanowire_network_simulator.model.device.network import Network
+from nn_simulator.model.device.network import Network
 from typing import Dict, Any, List, Tuple
 
 

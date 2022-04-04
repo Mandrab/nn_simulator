@@ -1,8 +1,8 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='nanowire_network_simulator',
-    version='1.0.0',
+    name='nn_simulator',
+    version='2.0.0',
     author='Paolo Baldini',
     author_email='paolobaldini01@gmail.com',
     description='Simulator for a nanowire-network with memristive behaviour',
@@ -14,9 +14,9 @@ setup(
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Topic :: Scientific/Engineering :: Artificial Life'
     ],
-    packages=['nanowire_network_simulator'] + [
-        'nanowire_network_simulator.' + _
-        for _ in find_packages(where='nanowire_network_simulator')
+    packages=['nn_simulator'] + [
+        'nn_simulator.' + _
+        for _ in find_packages(where='nn_simulator')
     ],
     install_requires=[
         'numpy',

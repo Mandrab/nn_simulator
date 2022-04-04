@@ -1,10 +1,9 @@
 import cupy as cp
 
-from nanowire_network_simulator import default as i_default
-from nanowire_network_simulator.controller.backup import save, exist, read
-from nanowire_network_simulator.model.device.factory import nanowire_network
-from nanowire_network_simulator.model.device.networks import \
-    generate_network_data
+from nn_simulator import default as i_default
+from nn_simulator.controller.backup import save, exist, read
+from nn_simulator.model.device.factory import nanowire_network
+from nn_simulator.model.device.networks import generate_network_data
 
 
 def test_save_and_import_completeness():

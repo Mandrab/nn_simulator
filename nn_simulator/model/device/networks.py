@@ -5,8 +5,8 @@ import numpy as np
 from .datasheet.Datasheet import Datasheet
 from .wires import generate_wires_distribution, detect_junctions
 from .wires import generate_adj_matrix
-from nanowire_network_simulator.model.device.network import Network
-from nanowire_network_simulator.logger import logger
+from nn_simulator.model.device.network import Network
+from nn_simulator.logger import logger
 from typing import Dict
 
 

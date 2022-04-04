@@ -1,8 +1,8 @@
 import networkx as nx
 
-from nanowire_network_simulator.logger import logger
-from nanowire_network_simulator.model.device.network import Network
-from nanowire_network_simulator.model.device.networks import nn2nx
+from nn_simulator.logger import logger
+from nn_simulator.model.device.network import Network
+from nn_simulator.model.device.networks import nn2nx
 from networkx import Graph
 from typing import Dict, Callable
 

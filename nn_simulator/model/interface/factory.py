@@ -1,6 +1,6 @@
 import random
 
-from nanowire_network_simulator.model.device.network import Network
+from nn_simulator.model.device.network import Network
 from typing import Set, Tuple, Callable
 
 __NO_VIABLE_NODE_ERROR = "Not enough nodes respect the required properties"

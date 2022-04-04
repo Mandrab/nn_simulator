@@ -18,7 +18,7 @@ And simplified/cleaned by:
 import numpy as np
 
 from itertools import combinations, count as inf
-from nanowire_network_simulator.logger import logger
+from nn_simulator.logger import logger
 from scipy.spatial.distance import cdist
 from typing import Dict
 

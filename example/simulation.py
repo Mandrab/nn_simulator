@@ -1,8 +1,8 @@
 import progressbar
 import random
 
-from nanowire_network_simulator import *
-from nanowire_network_simulator.logger import logger
+from nn_simulator import *
+from nn_simulator.logger import logger
 
 
 ################################################################################

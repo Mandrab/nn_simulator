@@ -3,11 +3,11 @@ import networkx as nx
 
 from ..device.networks import nn2nx
 from .utils import calculate_currents
-from nanowire_network_simulator.model.device.network import Network as Nw, copy
+from nn_simulator.model.device import Datasheet
+from nn_simulator.model.device.network import Network as Nw, copy
 from dataclasses import dataclass, field
 from functools import cached_property
 from collections.abc import Iterable, Generator
-from nanowire_network_simulator.model.device import Datasheet
 from typing import Set, Tuple, List, Dict
 
 

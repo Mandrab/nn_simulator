@@ -1,6 +1,6 @@
 import cupy as cp
 
-from nanowire_network_simulator.model.device.network import Network
+from nn_simulator.model.device.network import Network
 from test.model.utils import stack
 
 

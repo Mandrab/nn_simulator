@@ -7,8 +7,8 @@ from functools import reduce
 from itertools import product, chain, cycle, groupby
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
 from more_itertools import flatten
-from nanowire_network_simulator.model.analysis.evolution import Evolution
-from nanowire_network_simulator.model.device.networks import nn2nx
+from nn_simulator.model.analysis.evolution import Evolution
+from nn_simulator.model.device.networks import nn2nx
 from typing import Any, Callable, Iterable
 
 

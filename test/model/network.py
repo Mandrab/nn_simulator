@@ -1,8 +1,8 @@
 import cupy as cp
 
-from nanowire_network_simulator.model.device.datasheet.Datasheet import default
-from nanowire_network_simulator.model.device.network import Network
-from nanowire_network_simulator.model.interface.connector import connect
+from nn_simulator.model.device.datasheet.Datasheet import default
+from nn_simulator.model.device.network import Network
+from nn_simulator.model.interface.connector import connect
 
 
 def test_load_connection():
