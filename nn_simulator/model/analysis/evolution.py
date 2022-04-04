@@ -1,13 +1,13 @@
 import cupy as cp
 import networkx as nx
 
+from collections.abc import Iterable, Generator
+from dataclasses import dataclass, field
+from functools import cached_property
 from nn_simulator.model.analysis.utils import calculate_currents
 from nn_simulator.model.device import Datasheet
 from nn_simulator.model.device.network import Network as Nw, copy
 from nn_simulator.model.device.networks import nn2nx
-from dataclasses import dataclass, field
-from functools import cached_property
-from collections.abc import Iterable, Generator
 from typing import Set, Tuple, List, Dict
 
 

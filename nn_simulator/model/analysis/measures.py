@@ -1,9 +1,9 @@
 import networkx as nx
 
+from networkx import Graph
 from nn_simulator.logger import logger
 from nn_simulator.model.device.network import Network
 from nn_simulator.model.device.networks import nn2nx
-from networkx import Graph
 from typing import Dict, Callable
 
 
