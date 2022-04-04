@@ -96,5 +96,5 @@ def modified_voltage_node_analysis(network: Network, inputs: Dict[int, float]):
     Y = cp.vstack((Y, B))
 
     # perform analysis of the circuit (Yx = z -> x = Y^(-1)z)
-    network.voltage = cp.matmul(cp.linalg.inv(Y), Z)[:-len(inputs)]
+    network.voltage = cp.linalg.solve(Y, Z)[:-len(inputs)]
     network.voltage = cp.pad(network.voltage, (0, network.grounds))
