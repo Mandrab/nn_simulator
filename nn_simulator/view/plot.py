@@ -286,7 +286,7 @@ def outputs(_, ax, plot_data: Evolution, **_1):
     # get sequence of voltage on each output node
     data = dict([(load, []) for load, _ in plot_data.loads.items()])
     for graph in [g for g, _ in plot_data.instances]:
-        for load, _ in plot_data.loads:
+        for load in plot_data.loads:
             data[load].append(nn2nx(graph).nodes[load]['V'])
 
     line_graph(ax, plot_data.update_times, *data.values())
