@@ -4,6 +4,7 @@ from nn_simulator import default as i_default
 from nn_simulator.controller.backup import save, exist, read
 from nn_simulator.model.device.factory import nanowire_network
 from nn_simulator.model.device.networks import generate_network_data
+from test.model.device.utils import equals
 
 
 def test_save_and_import_completeness():
@@ -16,15 +17,7 @@ def test_save_and_import_completeness():
 
     f_nn, f_datasheet, f_data, f_connections = read()
 
-    assert cp.allclose(i_nn.adjacency, f_nn.adjacency)
-    assert cp.allclose(i_nn.wires_position[0], f_nn.wires_position[0])
-    assert cp.allclose(i_nn.wires_position[1], f_nn.wires_position[1])
-    assert cp.allclose(i_nn.junctions_position[0], f_nn.junctions_position[0])
-    assert cp.allclose(i_nn.junctions_position[1], f_nn.junctions_position[1])
-    assert cp.allclose(i_nn.circuit, f_nn.circuit)
-    assert cp.allclose(i_nn.admittance, f_nn.admittance)
-    assert cp.allclose(i_nn.voltage, f_nn.voltage)
-    assert i_nn.grounds == f_nn.grounds
+    equals(i_nn, f_nn)
 
     assert i_default == f_datasheet
 
@@ -33,6 +26,3 @@ def test_save_and_import_completeness():
         assert cp.allclose(v, f_data[k])
 
     assert i_connections == f_connections
-
-
-test_save_and_import_completeness()

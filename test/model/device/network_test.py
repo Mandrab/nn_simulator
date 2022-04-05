@@ -1,8 +1,8 @@
 import cupy as cp
 
 from nn_simulator.model.device.datasheet.Datasheet import default
-from nn_simulator.model.device.network import Network
 from nn_simulator.model.interface.connector import connect
+from test.model.device.utils import simple_network
 
 
 def test_load_connection():
@@ -34,17 +34,7 @@ def test_load_connection():
         [0, 0, 1, 0]
     ], dtype=cp.float32)
 
-    network = Network(
-        adjacency=cp.zeros_like(initial),
-        wires_position=tuple(), junctions_position=tuple(),
-        circuit=initial,
-        admittance=cp.zeros_like(initial),
-        voltage=cp.zeros_like(initial),
-        device_grounds=1
-    )
+    network = simple_network(initial, 1)
     connect(network, wire_idx=2, resistance=1 / default.Y_min)
 
     assert cp.allclose(network.circuit, final, 10e-3, 10e-3)
-
-
-test_load_connection()

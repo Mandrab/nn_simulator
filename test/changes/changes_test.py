@@ -1,4 +1,3 @@
-import cupy as cp
 import json
 import networkx as nx
 import numpy as np
@@ -7,6 +6,7 @@ from itertools import product
 from nn_simulator import *
 from nn_simulator.logger import *
 from nn_simulator.model.device.factory import largest_connected_component
+from test.model.device.utils import equals
 
 
 ################################################################################
@@ -19,20 +19,6 @@ def import_graph(file_name):
     return graph
 
 
-def are_equal(g1, g2):
-    assert cp.allclose(g1.adjacency, g2.adjacency)
-    assert cp.allclose(g1.wires_position[0], g2.wires_position[0])
-    assert cp.allclose(g1.wires_position[1], g2.wires_position[1])
-    assert cp.allclose(g1.junctions_position[0], g2.junctions_position[0])
-    assert cp.allclose(g1.junctions_position[1], g2.junctions_position[1])
-
-    assert cp.allclose(g1.circuit, g2.circuit, atol=1e-4)
-    assert cp.allclose(g1.admittance, g2.admittance, atol=1e-3)
-    assert cp.allclose(g1.voltage, g2.voltage, rtol=1e-3, atol=1e-3)
-
-    assert g1.grounds == g2.grounds
-
-
 ################################################################################
 # NETWORK SETUP
 
@@ -40,7 +26,7 @@ def are_equal(g1, g2):
 def test_data_equality():
     wires_dict = generate_network_data(default)
 
-    with open('changes/wires.dat', 'r') as file:
+    with open('test/changes/wires.dat', 'r') as file:
         expected = json.load(file)
 
     assert sorted(wires_dict.keys()) == sorted(expected.keys())
@@ -68,11 +54,11 @@ def test_original_behaviour():
     # set ground node in the network
     network.device_grounds += 1
 
-    expected = import_graph('changes/simplification.dat')
+    expected = import_graph('test/changes/simplification.dat')
     expected = nx2nn(expected)
     expected.device_grounds += 1
 
-    are_equal(network, expected)
+    equals(network, expected)
     logging.info('TEST: simplified graphs are equals')
 
     ############################################################################
@@ -93,24 +79,20 @@ def test_original_behaviour():
     # first stimulation comparison
     stimulate(network, default, delta_t, dict([stimulation[0]]))
 
-    expected = import_graph('changes/stimulation_1.dat')
+    expected = import_graph('test/changes/stimulation_1.dat')
     expected = nx2nn(expected)
     expected.device_grounds += 1
 
-    are_equal(network, expected)
+    equals(network, expected)
 
     # growth over time
     for signal in stimulation[1:]:
         stimulate(network, default, delta_t, dict([signal]))
 
-    expected = import_graph('changes/stimulation.dat')
+    expected = import_graph('test/changes/stimulation.dat')
     expected = nx2nn(expected)
     expected.device_grounds += 1
 
-    are_equal(network, expected)
+    equals(network, expected)
 
     logging.info('TEST: stimulated graphs are equals')
-
-
-test_data_equality()
-test_original_behaviour()
