@@ -1,8 +1,8 @@
 import cupy as cp
 
-from typing import Dict
-from .device import Datasheet
+from nn_simulator.model.device import Datasheet
 from nn_simulator.model.device.network import Network
+from typing import Dict
 
 
 def stimulate(
@@ -17,13 +17,13 @@ def stimulate(
 
     Parameters:
     ----------
-    graph: Graph
+    graph: Network
         The network to stimulate
     datasheet: Datasheet
         The datasheet of the characteristics of the device
     delta_time: float
         The time elapsed from the last update
-    inputs: Dict[int, float],
+    inputs: Dict[int, float]
         Pair of source/nodes with, for each, the correspondent voltage value
     """
 
@@ -34,12 +34,24 @@ def stimulate(
     modified_voltage_node_analysis(graph, inputs)
 
 
-def update_conductance(graph: Network, datasheet: Datasheet, delta_time: float):
-    """Update edges weights (Miranda's model)"""
+def update_conductance(net: Network, datasheet: Datasheet, delta_time: float):
+    """
+    Update weights of the nanowires junctions. The original model was developed
+    by Enrique Miranda.
+
+    Parameters
+    ----------
+    net: Network
+        The network of which update the conductance
+    datasheet: Datasheet
+        The device specification
+    delta_time: float
+        Time elapsed from the last update
+    """
 
     # calculate delta voltage on a junction
-    delta_v = graph.device.adjacency * graph.device.voltage
-    delta_v = cp.absolute(graph.device.voltage.reshape(-1, 1) - delta_v)
+    delta_v = net.device.adjacency * net.device.voltage
+    delta_v = cp.absolute(net.device.voltage.reshape(-1, 1) - delta_v)
 
     # excitation and depression rate coefficients
     kp = datasheet.kp0 * cp.exp(datasheet.eta_p * delta_v)
@@ -47,12 +59,12 @@ def update_conductance(graph: Network, datasheet: Datasheet, delta_time: float):
     kpd = kp + kd
 
     # calculate and set admittance [0-1]
-    partial = kd / kp * graph.device.admittance * cp.exp(-delta_time * kpd)
-    graph.device.admittance = graph.device.adjacency * kp / kpd * (1 + partial)
+    partial = kd / kp * net.device.admittance * cp.exp(-delta_time * kpd)
+    net.device.admittance = net.device.adjacency * kp / kpd * (1 + partial)
 
     # calculate and set circuit conductance
-    partial = graph.device.admittance * (datasheet.Y_max - datasheet.Y_min)
-    graph.device.circuit = graph.device.adjacency * (datasheet.Y_min + partial)
+    partial = net.device.admittance * (datasheet.Y_max - datasheet.Y_min)
+    net.device.circuit = net.device.adjacency * (datasheet.Y_min + partial)
 
 
 def modified_voltage_node_analysis(network: Network, inputs: Dict[int, float]):
@@ -61,8 +73,10 @@ def modified_voltage_node_analysis(network: Network, inputs: Dict[int, float]):
 
     Parameters
     ----------
-    network: the nanowire network circuit
-    inputs: a pair of node input index and applied voltage
+    network: Network
+        The nanowire network circuit
+    inputs: Dict[int, float]
+        A pair of node input index and applied voltage
     """
 
     # create a vector to contain the voltages of the input nodes
