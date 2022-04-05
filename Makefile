@@ -2,7 +2,7 @@ build:
 	python -m build
 
 test:
-	pytest
+	pytest --cov=nn_simulator test/
 
 install:
 	pip install nanowire_network_simulator-1.0.0-py3-none-any.whl
