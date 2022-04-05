@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import cupy as cp
 
-from .utils import *
 from collections import Counter
 from functools import reduce
 from itertools import product, chain, cycle, groupby
@@ -9,6 +8,7 @@ from matplotlib.animation import FuncAnimation, ImageMagickWriter
 from more_itertools import flatten
 from nn_simulator.model.analysis.evolution import Evolution
 from nn_simulator.model.device.networks import nn2nx
+from nn_simulator.view.utils import *
 from typing import Any, Callable, Iterable
 
 
@@ -83,7 +83,6 @@ def labeled_network(_0, _1, plot_data: Evolution, **others):
 
 def largest_connected_component(_0, _1, data: Evolution, **others):
     graph = nn2nx(data.graph)
-    out, source, load = data.grounds, data.inputs.items(), data.loads
     opt = iter(others.get(_, {}) for _ in ['default', 'inputs', 'loads'])
 
     components = list_connected_components(graph)
@@ -95,8 +94,8 @@ def largest_connected_component(_0, _1, data: Evolution, **others):
 
     # todo makes no sense if input change in time
     draw(graph, next(opt), colors)
-    highlight(graph, {k for k, _ in source}, 'r', next(opt))
-    highlight(graph, out | {*dict(load)}, 'k', next(opt))
+    highlight(graph, set(data.inputs), 'r', next(opt))
+    highlight(graph, set(data.loads), 'k', next(opt))
 
 
 def network_conductance(fig, ax1, plot_data: Evolution, **_1):
@@ -111,10 +110,8 @@ def network_conductance(fig, ax1, plot_data: Evolution, **_1):
                 [
                     nx.resistance_distance(
                         nn2nx(graph),
-                        source,
-                        [*plot_data.grounds | {n for n, _ in plot_data.loads}][0],
-                        weight='Y',
-                        invert_weight=False
+                        source, next(iter(plot_data.loads)),
+                        weight='Y', invert_weight=False
                     )
                 ]
             ) for source, _ in inputs.items()
@@ -164,8 +161,8 @@ def voltage_distribution(_, ax, plot_data: Evolution, **others):
     """Plot the voltage distribution (intensity) of the initial graph"""
     draw_network(
         nn2nx(graph := plot_data.graph), plot_data.sources,
-        set(range(len(graph.voltage) - graph.grounds, len(graph.voltage))),
-        {n for n, _ in plot_data.loads},
+        set(range(len(graph.voltage) - graph.grounds, len(graph.voltage))) |
+        set(plot_data.loads),
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max,
         normal_node_colors=graph.voltage / 10,
         **dicts(others, default=dict(ax=ax), others=dict(ax=ax))
@@ -177,7 +174,7 @@ def conductance_distribution(_, ax, plot_data: Evolution, **others):
     graph = nn2nx(next(plot_data.currents_graphs(reverse=True)))
     draw_network(
         graph,
-        plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
+        plot_data.sources, set(plot_data.loads),
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max, 20,
         [graph.nodes[n]['V'] for n in graph.nodes()],
         [graph[u][v]['Y'] for u, v in graph.edges()],
@@ -204,7 +201,7 @@ def information_centrality(_, ax, plot_data: Evolution, **others):
 
     draw_network(
         graph,
-        plot_data.sources, plot_data.grounds, {n for n, _ in plot_data.loads},
+        plot_data.sources, set(plot_data.loads),
         plot_data.datasheet.Y_min, plot_data.datasheet.Y_max,
         centrality_normalized,
         centrality[-1],
@@ -287,7 +284,7 @@ def outputs(_, ax, plot_data: Evolution, **_1):
     """Plot the voltage variation on the output nodes"""
 
     # get sequence of voltage on each output node
-    data = dict([(load, []) for load, _ in plot_data.loads])
+    data = dict([(load, []) for load, _ in plot_data.loads.items()])
     for graph in [g for g, _ in plot_data.instances]:
         for load, _ in plot_data.loads:
             data[load].append(nn2nx(graph).nodes[load]['V'])
