@@ -1,8 +1,8 @@
-dist:
-	python setup.py bdist_wheel
+build:
+	python -m build
 
 test:
-	python setup.py pytest
+	pytest
 
 install:
 	pip install nanowire_network_simulator-1.0.0-py3-none-any.whl
@@ -13,4 +13,4 @@ activate_env:
 clear:
 	rm -rf build dist .eggs connections.dat datasheet.dat graph.dat wires.dat
 
-.PHONY: dist test install activate_env clear
+.PHONY: build test install activate_env clear
