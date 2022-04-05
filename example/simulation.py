@@ -33,7 +33,7 @@ sources = random_nodes(graph, set(), count=4)
 # select output nodes from non-grounds & non-source nodes # todo distance
 loads = random_loads(graph, sources, count=2)
 
-for load, resistance in loads:
+for load, resistance in loads.items():
     connect(graph, load, resistance)
 
 ################################################################################
@@ -60,12 +60,12 @@ progressbar = progressbar.ProgressBar(max_value=steps)
 logger.debug('Growth of the conductive path')
 
 # creation of an analysis utility and save of initial state
-evolution = Evolution(default, wires_dict, delta_t, set(), loads)
+evolution = Evolution(default, wires_dict, delta_t, loads)
 
 # growth over time
 for i in range(steps):
     stimulate(graph, default, delta_t, dict(stimulation[i]))
-    evolution.append(graph, stimulation[i])
+    evolution.append(graph, dict(stimulation[i]))
     progressbar.update(i+1)
 progressbar.finish()
 
