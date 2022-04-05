@@ -117,14 +117,3 @@ def test_minimum_distance_selection_3_distance_negated_ground():
     ], dtype=cp.float32)
     function = minimum_distance_selection([0], 3, True)
     assert function(simple_network(adj, 1), list()) == {0, 1, 2, 3}
-
-
-test_non_ground_selection()
-test_minimum_distance_selection_0_distance()
-test_minimum_distance_selection_0_distance_ground()
-test_minimum_distance_selection_1_distance()
-test_minimum_distance_selection_1_distance_ground()
-test_minimum_distance_selection_3_distance()
-test_minimum_distance_selection_3_distance_ground()
-test_minimum_distance_selection_3_distance_negated()
-test_minimum_distance_selection_3_distance_negated_ground()
