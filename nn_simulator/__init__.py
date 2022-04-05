@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-from .controller import backup
-from .model.analysis.evolution import Evolution
-from .model.analysis.measures import print_info, inspect
-from .model.device.datasheet.Datasheet import default
-from .model.device.factory import nanowire_network
-from .model.device.networks import generate_network_data, nn2nx, nx2nn
-from .model.interface.factory import random_nodes, random_loads
-from .model.interface.connector import connect
-from .model.interface.evolutor import mutate, non_ground_selection
-from .model.interface.evolutor import minimum_distance_selection
-from .model.stimulator import stimulate
-from .view import plot
+from nn_simulator.controller import backup
+from nn_simulator.model.analysis.evolution import Evolution
+from nn_simulator.model.analysis.measures import print_info, inspect
+from nn_simulator.model.device.datasheet.Datasheet import default
+from nn_simulator.model.device.factory import nanowire_network
+from nn_simulator.model.device.networks import generate_network_data
+from nn_simulator.model.device.networks import nn2nx, nx2nn
+from nn_simulator.model.interface.factory import random_nodes, random_loads
+from nn_simulator.model.interface.connector import connect
+from nn_simulator.model.interface.evolutor import mutate, non_ground_selection
+from nn_simulator.model.interface.evolutor import minimum_distance_selection
+from nn_simulator.model.stimulator import stimulate
+from nn_simulator.view import plot
 
 LOGGER_NAME = 'nanowire-network-simulator-lib'
 
