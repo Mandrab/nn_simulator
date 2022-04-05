@@ -71,7 +71,7 @@ def line_graph(ax, x, *data):
 
 def draw_network(
         graph: Graph,
-        sources: Set[int], grounds: Set[int], loads: Set[int],
+        sources: Set[int], loads: Set[int],
         edge_min: float = None, edge_max: float = None,
         normal_sizes: Any = 20,
         normal_node_colors: Any = '#1f78b4', normal_edge_colors: Any = 'k',
@@ -93,8 +93,8 @@ def draw_network(
         )
     )
 
-    for data, color in zip([sources, grounds, loads], ['r', 'k', 'y']):
-        highlight(graph, data, color, others.get('others', {}))
+    highlight(graph, sources, 'r', others.get('others', {}))
+    highlight(graph, loads, 'y', others.get('others', {}))
 
 
 def highlight(graph: Graph, nodes: Set[int], color: str, others):
