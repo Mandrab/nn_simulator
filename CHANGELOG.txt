@@ -1,3 +1,7 @@
+2022-04-05    Paolo Baldini    <paolobaldini01@gmail.com>
+    Release 2.0.1
+    * Improved MNA speed. Adapted some methods to work with matrixes
+
 2022-04-04    Paolo Baldini    <paolobaldini01@gmail.com>
     Release 2.0.0
     * The nanowire-network simulator library now use cupy. The previous version

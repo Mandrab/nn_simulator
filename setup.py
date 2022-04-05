@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='nn_simulator',
-    version='2.0.0',
+    version='2.0.1',
     author='Paolo Baldini',
     author_email='paolobaldini01@gmail.com',
     description='Simulator for a nanowire-network with memristive behaviour',
@@ -19,10 +19,11 @@ setup(
         for _ in find_packages(where='nn_simulator')
     ],
     install_requires=[
-        'numpy',
+        'cupy',
+        'matplotlib',
         'networkx',
-        'scipy',
-        'matplotlib'
+        'numpy',
+        'scipy'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest>=4.4.1'],
