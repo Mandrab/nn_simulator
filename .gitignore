@@ -10,6 +10,7 @@ venv
 *.dat
 *.gif
 *.pyc
+.coverage
 # EXCEPTIONS
 !test/changes/*.dat
 test/changes/wires.dat
