@@ -1,7 +1,7 @@
 import cupy as cp
 
 from nn_simulator.model.device.network import Network
-from test.model.device.utils import stack
+from nn_simulator.model.utils import stack
 
 
 def connect(network: Network, wire_idx: int, resistance: float):
