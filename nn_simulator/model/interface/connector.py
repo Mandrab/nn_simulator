@@ -30,3 +30,27 @@ def connect(network: Network, wire_idx: int, resistance: float):
 
     # increment number of grounds
     network.external_grounds += 1
+
+
+def disconnect(network: Network):
+    """
+    Disconnect all the external loads of the network.
+
+    Parameters
+    ----------
+    network: Network
+        the nanowire network from which disconnect the loads
+    """
+
+    # if there are not external grounds, return
+    if not (grounds := network.external_grounds):
+        return
+
+    # remove paddings from the matrix
+    network.adjacency = network.adjacency[:-grounds, :-grounds]
+    network.circuit = network.circuit[:-grounds, :-grounds]
+    network.admittance = network.admittance[:-grounds, :-grounds]
+    network.voltage = network.voltage[:-grounds]
+
+    # decrement number of grounds
+    network.external_grounds = 0
