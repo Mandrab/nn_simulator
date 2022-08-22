@@ -172,6 +172,20 @@ def detect_junctions(wires_dict: Dict[str, Any]):
     m = xa * yb - ya * xb
 
     def junction(first: int, second: int) -> bool | Tuple[float, float]:
+        """
+        Calculate the junction position of two segments or return false.
+
+        Parameters
+        ----------
+        first: int
+            Index of the first segment to consider
+        second: int
+            Index of the second segment to consider
+
+        Returns
+        -------
+        False if no intersection exists, its position otherwise.
+        """
         c = delta_x[first] * delta_y[second] - delta_y[first] * delta_x[second]
 
         # no intersection
@@ -184,6 +198,22 @@ def detect_junctions(wires_dict: Dict[str, Any]):
         y = (a * delta_y[second] - b * delta_y[first]) / c
 
         def between(value: float, min_: float, max_: float) -> bool:
+            """
+            Calculate if a value is between two others.
+
+            Parameters
+            ----------
+            value: float
+                The value to consider
+            min_: float
+                The bottom value
+            max_: float
+                The top value
+
+            Returns
+            -------
+            True if value is greater than min and lower than max, False otherwise.
+            """
             return min_ <= value <= max_
 
         # exclude junction points out of the points area
