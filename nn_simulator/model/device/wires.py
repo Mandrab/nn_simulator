@@ -68,12 +68,12 @@ def generate_wires_distribution(
 
     np.random.seed(seed)
 
-    # wire lengths
+    # wire lengths distribution
     wire_lengths = generate_dist_lengths(
         number_of_wires, wire_av_length, wire_dispersion
     )
 
-    # generate centroids distribution (?)
+    # generate wire centroids distribution
     xc = np.random.rand(number_of_wires) * Lx
     yc = np.random.rand(number_of_wires) * Ly
     theta = generate_dist_orientations(number_of_wires)
@@ -234,33 +234,57 @@ def detect_junctions(wires_dict: Dict[str, Any]):
     """
 
     logger.debug('Detecting junctions')
-    xi, yi, edge_list = [], [], []
-    for first, second in combinations(range(wires_dict['number_of_wires']), 2):
 
-        def points(wire): return [
-            [wires_dict['xa'][wire], wires_dict['ya'][wire]],
-            [wires_dict['xb'][wire], wires_dict['yb'][wire]]
-        ]
+    xa, ya = wires_dict['xa'], wires_dict['ya']
+    xb, yb = wires_dict['xb'], wires_dict['yb']
 
-        p0, p1 = map(np.array, points(first))
-        p2, p3 = map(np.array, points(second))
+    # calculate distance between start and end point
+    delta_x, delta_y = xa - xb, ya - yb
+    x_ranges = [(min(_), max(_)) for _ in zip(xa, xb)]
+    y_ranges = [(min(_), max(_)) for _ in zip(ya, yb)]
 
-        # find and save junctions coordinates
-        if junction := find_segment_intersection(p0, p1, p2, p3):
-            xi.append(junction[0])
-            yi.append(junction[1])
+    m = xa * yb - ya * xb
 
-            # save node indices for every edge
-            edge_list.append([first, second])
+    def junction(first: int, second: int) -> bool | Tuple[float, float]:
+        c = delta_x[first] * delta_y[second] - delta_y[first] * delta_x[second]
 
-    # save centres coordinates and edge list to dict if there are junctions
-    if not edge_list:
+        # no intersection
+        if abs(c) < 0.01:
+            return False
+
+        a, b = m[first], m[second]
+
+        x = (a * delta_x[second] - b * delta_x[first]) / c
+        y = (a * delta_y[second] - b * delta_y[first]) / c
+
+        def between(value: float, min_: float, max_: float) -> bool:
+            return min_ <= value <= max_
+
+        # exclude junction points out of the points area
+        if not (
+            between(x, *x_ranges[first]) and between(x, *x_ranges[second])
+        ) or not (
+            between(y, *y_ranges[first]) and between(y, *y_ranges[second])
+        ):
+            return False
+
+        return x, y
+
+    wires_count = range(wires_dict['number_of_wires'])
+    junctions = [(_, junction(*_)) for _ in combinations(wires_count, 2)]
+    junctions = dict(filter(lambda _: _[1], junctions))
+
+    xj = np.array([*map(lambda _: _[0], junctions.values())], dtype=np.float32)
+    yj = np.array([*map(lambda _: _[0], junctions.values())], dtype=np.float32)
+    edge_list = np.array([*junctions.keys()], dtype=np.float32)
+
+    if not edge_list.size:
         raise Exception('There are no junctions in this network')
 
     wires_dict['number_of_junctions'] = len(edge_list)
-    wires_dict['xi'] = np.asarray(xi, dtype=np.float32)
-    wires_dict['yi'] = np.asarray(yi, dtype=np.float32)
-    wires_dict['edge_list'] = np.asarray(edge_list, dtype=np.float32)
+    wires_dict['xi'] = xj
+    wires_dict['yi'] = yj
+    wires_dict['edge_list'] = edge_list
 
     logger.debug('Finished detecting junctions')
 
