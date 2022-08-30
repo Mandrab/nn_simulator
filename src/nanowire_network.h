@@ -1,7 +1,11 @@
 /**
  * @file nanowire_network.h
+ * @author Paolo Baldini (paolo.baldini7@unibo.it)
+ * @brief Nanowire network library entrypoint
+ * @version 0.1
+ * @date 2022-08-31
  * 
- * Nanowire network library files.
+ * @copyright Copyright (c) 2022
  */
 #ifndef __NANOWIRE_NETWORK__
 #define __NANOWIRE_NETWORK__
