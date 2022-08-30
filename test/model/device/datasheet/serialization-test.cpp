@@ -1,3 +1,12 @@
+/**
+ * @file serialization-test.cpp
+ * @author Paolo Baldini (paolo.baldini7@unibo.it)
+ * @brief Test of the Datasheet (de-)serialization utils.
+ * @version 0.1
+ * @date 2022-08-31
+ * 
+ * @copyright Copyright (c) 2022
+ */
 #include <gtest/gtest.h>
 
 #include "nanowire_network.h"
@@ -6,6 +15,9 @@ using namespace model::device::datasheet;
 
 const Datasheet DEFAULT;
 
+/**
+ * @brief Test the serialization function
+ */
 TEST(Serialization, StructToData) {
 
     // serialize the data through the function
@@ -40,6 +52,9 @@ TEST(Serialization, StructToData) {
     delete data;
 }
 
+/**
+ * @brief Test the deserialization function
+ */
 TEST(Serialization, DataToStruct) {
 
     // set the data array
