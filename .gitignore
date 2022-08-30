@@ -4,6 +4,7 @@
 .vscode
 build
 dist
+doc
 nn_simulator.egg-info
 venv
 # FILES
