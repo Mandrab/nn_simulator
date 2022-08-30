@@ -9,3 +9,8 @@ The module *wires* used to create the network structure was imported and adapted
 --------------------------------------------------------------------------------
 
 The code allows performing analysis of the structural and functional connectivity of the memristive NW network.
+
+Run the code tests with:
+'''
+clear; cmake -S . -B build; cmake --build build; cd build && ctest; cd ..
+'''
