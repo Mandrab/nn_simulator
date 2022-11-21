@@ -18,6 +18,8 @@ function from_density(
         seed::Integer
 )::Datasheet
 
+    @info "Generating a datasheet with: " density
+
     # calculate number of wires needed to reach the density
     wires = Int(floor(density * size ^ 2 / wires_length ^ 2))
 
