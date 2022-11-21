@@ -16,7 +16,7 @@ Calculate the optimal number of threads and blocks to run the kernel.
 - `Tuple{Tuple{Integer, Integer}, Tuple{Integer, Integer}}`: If the array is 2D.
   The first value is the number of 2D threads, the second the number of 2D blocks.
 """
-function optimize(kernel::Function, array::CuArray)
+function optimize(kernel::CUDA.HostKernel, array::CuArray)
 
     # extract configuration via occupancy API
     config = launch_configuration(kernel.fun)
