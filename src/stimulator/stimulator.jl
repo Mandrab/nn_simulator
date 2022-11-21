@@ -1,10 +1,10 @@
 include("./mna.jl")
 include("./update.jl")
 
-using ..Devices
-using ..Devices.Datasheets
 using .MNAs
 using .Updates
+using ..Devices
+using ..Devices.Datasheets
 
 export stimulate!
 
