@@ -53,9 +53,11 @@ end
 """
 Kernel for the conductance update.
 
-# Arguments:
+# Parameters:
 - `G::CuMatrix`: matrix containing the conductance of each junction.
+  It will be modified by the function.
 - `Y::CuMatrix`: matrix containing the admittance of each junction.
+  It will be modified by the function.
 - `A::CuMatrix`: adjacency matrix representing the junctions of the wires.
 - `V::CuArray`: array containing the wires voltage value.
 - `kp::Float64`: One of the junction potentiation coefficient.
