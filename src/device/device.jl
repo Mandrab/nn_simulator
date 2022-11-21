@@ -23,7 +23,7 @@ Contains the state of the nanowire network.
 - `V::CuArray{Float64}`: Potential (i.e., voltage) of each wire.
 - `grounds::Integer`: Number of nodes to be considered ground (in the rightmost part of the matrix).
 """
-struct Device
+mutable struct Device
     wires::Vector{Wire}
 
     junctions::Dict{Indexes, Point}
