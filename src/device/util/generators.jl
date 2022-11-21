@@ -14,6 +14,8 @@ Drop wires in the package according to the datasheet description.
 """
 function drop_wires(datasheet::Datasheet)::Vector{Wire}
 
+    @debug "Dropping wires"
+
     # set the random seed for the device generation
     Random.seed!(datasheet.seed)
 
@@ -94,8 +96,6 @@ function detect_junctions(wires::Vector{Wire}, datasheet::Datasheet)::Dict{Index
         end
     end
 
-    @debug "Finished detecting junctions"
-
     return junctions
 end
 
@@ -109,6 +109,8 @@ Generate the adjacency matrix from the junctions mapping.
 - `Matrix{Bool}`: The generated adjacency matrix.
 """
 function calculate_adjacency(junctions::Dict{Indexes, Point}, datasheet::Datasheet)::Matrix{Bool}
+
+    @debug "Calculating adjacency"
 
     matrix = Matrix{Bool}(undef, datasheet.wires_count, datasheet.wires_count)
     for ((x, y), _) in junctions
