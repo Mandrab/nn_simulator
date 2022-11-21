@@ -14,7 +14,7 @@ Wire = Tuple{
 """
 Contains the state of the nanowire network.
 
-# Arguments
+# Fields:
 - `wires::Vector{Wire}`: Set of wires and their own information.
 - `junctions::Dict{Indexes, Point}`: Set of wires junctions and their position.
 - `A::CuArray{Bool, 2}`: Adjacency matrix (i.e., junctions) of the device.

@@ -5,7 +5,7 @@ export Datasheet
 """
 Define the static properties of the device.
 
-# Arguments
+# Fields:
 - `wires_count::Integer`: Total number of wires in the network.
 - `wires_length_mean::AbstractFloat`: Average wire length in µm.
 - `wires_length_variance::AbstractFloat`: Length of the nano-wire in µm.
