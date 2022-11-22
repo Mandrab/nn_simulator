@@ -21,17 +21,17 @@ Contains the state of the nanowire network.
 - `G::CuArray{Float64}`: Adjacency matrix with the value of the conductance in each junction.
 - `Y::CuArray{Float64}`: Adjacency matrix with the value of the admittance in each junction.
 - `V::CuArray{Float64}`: Potential (i.e., voltage) of each wire.
-- `grounds::Integer`: Number of nodes to be considered ground (in the rightmost part of the matrix).
+- `grounds::Int64`: Number of nodes to be considered ground (in the rightmost part of the matrix).
 """
 mutable struct Device
     wires::Vector{Wire}
 
     junctions::Dict{Indexes, Point}
 
-    A::CuArray{Bool, 2}
-    G::CuArray{Float64}
-    Y::CuArray{Float64}
+    A::CuMatrix{Bool}
+    G::CuMatrix{Float64}
+    Y::CuMatrix{Float64}
     V::CuArray{Float64}
 
-    grounds::Integer
+    grounds::Int64
 end
