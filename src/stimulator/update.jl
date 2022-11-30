@@ -60,10 +60,10 @@ Kernel for the conductance update.
   It will be modified by the function.
 - `A::CuMatrix`: adjacency matrix representing the junctions of the wires.
 - `V::CuArray`: array containing the wires voltage value.
-- `kp::Float64`: One of the junction potentiation coefficient.
-- `eta_p::Integer`: One of the junction potentiation coefficient.
-- `kd::Float64`: One of the junction depression coefficient.
-- `eta_d::Integer`: One of the junction depression coefficient.
+- `kp::AbstractFloat`: One of the junction potentiation coefficient.
+- `eta_p::Int`: One of the junction potentiation coefficient.
+- `kd::AbstractFloat`: One of the junction depression coefficient.
+- `eta_d::Int`: One of the junction depression coefficient.
 - `Y_min::AbstractFloat`: Minimum admittance value.
 - `Y_max::AbstractFloat`: Maximum admittance value.
 - `Δt::AbstractFloat`: Time elapsed from the last update.

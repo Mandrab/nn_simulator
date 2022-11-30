@@ -3,6 +3,7 @@ module MNAs
 include("./kernels.jl")
 
 using CUDA
+using LinearAlgebra
 using .Kernels
 using ...Devices
 using ...Devices.Datasheets
@@ -10,10 +11,10 @@ using ...Devices.Datasheets
 export modified_voltage_node_analysis!
 
 """ Override default `similar` symbol with a custom approx function. """
-≈(a::Number, b::Number) = isapprox(a, b; atol=eps(Float64), rtol=0)
+≈(a::Float64, b::Float64) = isapprox(a, b; atol=eps(Float64), rtol=0)
 
 """ Override default `not-similar` symbol with a custom approx function. """
-≉(a::Number, b::Number) = ! isapprox(a, b; atol=eps(Float64), rtol=0)
+≉(a::Float64, b::Float64) = ! isapprox(a, b; atol=eps(Float64), rtol=0)
 
 """
 Perform the Modified Nodal Analysis to calculate the voltage distribution.
@@ -28,8 +29,7 @@ function modified_voltage_node_analysis!(device::Device, inputs::Vector{Float64}
     # create a vector to contain the voltages of the input nodes
     # the ground nodes are not present
     V = zeros(Float64, length(device.V))
-    append!(V, collect(filter(v -> v ≉ 0, inputs)))
-    V = CuArray(V)
+    append!(V, collect(filter(v -> v ≉ .0, inputs)))
 
     # create a vector to identify the sources (1: source, 0: non-source)
     # each column contains only one '1': there is 1 column for each source
@@ -38,7 +38,7 @@ function modified_voltage_node_analysis!(device::Device, inputs::Vector{Float64}
     # enumerate the inputs only (used to define
     # their position on bottom and right of M)
     counter = Iterators.Stateful(1:length(inputs))
-    inputs = CuArray(map(v -> v ≈ 0 ? 0 : popfirst!(counter), inputs))
+    inputs = CuArray(map(v -> v ≈ .0 ? 0 : popfirst!(counter), inputs))
 
     # compile kernel without running it
     kernel = @cuda launch=false kernel!(M, device.G, inputs)
@@ -56,7 +56,7 @@ function modified_voltage_node_analysis!(device::Device, inputs::Vector{Float64}
     )
 
     # analyze the circuit (Yx = z -> x = Y^(-1)z)
-    device.V = M \ V
+    device.V = M \ CuArray(V)
 end
 
 """
@@ -87,7 +87,8 @@ function kernel!(M, G, inputs)
     width, height = size(G)
     if i <= width && j <= height
 
-        if (c = G[i, j]) ≉ 0
+        # check if there is a junction
+        if (c = G[i, j]) ≉ .0
             M[i, j] = -c
             CUDA.@atomic M[i, i] += c
         end
