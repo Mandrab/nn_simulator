@@ -6,37 +6,37 @@ export Datasheet
 Define the static properties of the device.
 
 # Fields:
-- `wires_count::Integer`: Total number of wires in the network.
-- `wires_length_mean::AbstractFloat`: Average wire length in µm.
-- `wires_length_variance::AbstractFloat`: Length of the nano-wire in µm.
-- `size::Integer`: Length of one side of the device package in µm.
-- `kp:AbstractFloat`: One of the junction potentiation coefficient.
-- `eta_p::Integer`: One of the junction potentiation coefficient.
-- `kd::AbstractFloat`: One of the junction depression coefficient.
-- `eta_d::Integer`: One of the junction depression coefficient.
-- `Y_min::AbstractFloat`: Minimum admittance value.
-- `Y_max::AbstractFloat`: Maximum admittance value.
-- `seed::Integer`: Seed of the random number generator to create reproducible networks.
+- `wires_count::Int64`: Total number of wires in the network.
+- `wires_length_mean::Float64`: Average wire length in µm.
+- `wires_length_variance::Float64`: Length of the nano-wire in µm.
+- `size::Int64`: Length of one side of the device package in µm.
+- `kp:Float64`: One of the junction potentiation coefficient.
+- `eta_p::Int64`: One of the junction potentiation coefficient.
+- `kd::Float64`: One of the junction depression coefficient.
+- `eta_d::Int64`: One of the junction depression coefficient.
+- `Y_min::Float64`: Minimum admittance value.
+- `Y_max::Float64`: Maximum admittance value.
+- `seed::Int64`: Seed of the random number generator to create reproducible networks.
 """
 @with_kw struct Datasheet
     # wires data
-    wires_count::Integer = 1500
-    wires_length_mean::AbstractFloat = 40.0
-    wires_length_variance::AbstractFloat = 14.0
+    wires_count::Int64 = 1500
+    wires_length_mean::Float64 = 40.0
+    wires_length_variance::Float64 = 14.0
 
     # device package size
-    size::Integer = 500
+    size::Int64 = 500
 
     # update_edge_weights parameters
-    kp::AbstractFloat = 0.0001
-    eta_p::Integer = 10
-    kd::AbstractFloat = 0.5
-    eta_d::Integer = 1
+    kp::Float64 = 0.0001
+    eta_p::Int64 = 10
+    kd::Float64 = 0.5
+    eta_d::Int64 = 1
 
     # admittance ranges
-    Y_min::AbstractFloat = 0.001
-    Y_max::AbstractFloat = 0.001 * 100
+    Y_min::Float64 = 0.001
+    Y_max::Float64 = 0.001 * 100
 
     # random number generator seed
-    seed::Integer = 40
+    seed::Int64 = 40
 end
