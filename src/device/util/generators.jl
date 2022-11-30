@@ -8,6 +8,7 @@ Drop wires in the package according to the datasheet description.
 
 # Parameters:
 - `datasheet::Datasheet`: Datasheet describing the device.
+
 # Returns:
 - `Vector{Wire}`: A sequence of dropped wires, including their centroid,
   start and end position, and lenght.
@@ -23,11 +24,11 @@ function drop_wires(datasheet::Datasheet)::Vector{Wire}
     distribution = Normal(datasheet.wires_length_mean, datasheet.wires_length_variance)
     generator = map(x -> rand(distribution), Lazy.range())
     generator = filter(x -> x > 0, generator)
-    wires_length::Vector{Float64} = collect(take(datasheet.wires_count, generator))
+    wires_length = collect(take(datasheet.wires_count, generator))
 
     # generate the centroids of the wires
-    xc = rand(Float64, datasheet.wires_count) * datasheet.size
-    yc = rand(Float64, datasheet.wires_count) * datasheet.size
+    xc = rand(datasheet.wires_count) * datasheet.size
+    yc = rand(datasheet.wires_count) * datasheet.size
     theta = rand(datasheet.wires_count) * pi
 
     # generate the coordinates for one wire end
@@ -53,6 +54,7 @@ Detect the wires junctions.
 # Parameters:
 - `wires::Vector{Wire}`: The set of dropped wires.
 - `datasheet::Datasheet`: The datasheet describing the device.
+
 # Returns:
 - `Dict{Indexes, Point}`: A mapping between wires and junction position.
 """
@@ -105,6 +107,7 @@ Generate the adjacency matrix from the junctions mapping.
 # Parameters:
 - `junctions::Dict{Indexes, Point}`: The junctions mapping.
 - `datasheet::Datasheet`: The datasheet describing the device.
+
 # Returns:
 - `Matrix{Bool}`: The generated adjacency matrix.
 """

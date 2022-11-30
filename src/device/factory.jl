@@ -11,6 +11,7 @@ Produces the nanowire network device according to its datasheet description.
 
 # Parameters:
 - `datasheet::Datasheet`: Datasheet describing the device.
+
 # Returns:
 - `Device`: The realized device.
 """
@@ -41,6 +42,7 @@ Simplifies the device removing everything except the largest connected component
 # Parameters:
 - `device::Device`: The device to simplify.
 - `ds::Datasheet`: Datasheet describing the passed device.
+
 # Returns:
 - `Tuple{Device, Datasheet}`: The simplified device and the updated datasheet
   (i.e., withouth the removed wires and junctions).
@@ -59,7 +61,7 @@ function simplify(device::Device, ds::Datasheet)::Tuple{Device, Datasheet}
     wires = device.wires[mask]
 
     # remove the junctions between nodes not in the connected component
-    junctions = Dict(filter(p -> first(first(p)) ∉ mask, device.junctions))
+    junctions = Dict(filter(p -> first(first(p)) ∈ mask, device.junctions))
 
     # delete all the components except the largest one
     A = prune(device.A, mask)

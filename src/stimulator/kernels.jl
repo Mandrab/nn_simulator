@@ -10,6 +10,7 @@ Calculate the optimal number of threads and blocks to run the kernel.
 # Parameters:
 - `kernel::Function`: The compiled kernel function (use `@cuda launch=false`).
 - `array::CuArray`: The largest 1D or 2D array used by the kernel function.
+
 # Returns:
 - `Tuple{Integer, Integer}`: If the array is 1D.
   The first value is the number of threads, the second the number of blocks.
