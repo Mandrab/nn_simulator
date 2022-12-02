@@ -53,12 +53,11 @@ Detect the wires junctions.
 
 # Parameters:
 - `wires::Vector{Wire}`: The set of dropped wires.
-- `datasheet::Datasheet`: The datasheet describing the device.
 
 # Returns:
 - `Dict{Indexes, Point}`: A mapping between wires and junction position.
 """
-function detect_junctions(wires::Vector{Wire}, datasheet::Datasheet)::Dict{Indexes, Point}
+function detect_junctions(wires::Vector{Wire})::Dict{Indexes, Point}
 
     @debug "Detecting junctions"
 
@@ -72,8 +71,8 @@ function detect_junctions(wires::Vector{Wire}, datasheet::Datasheet)::Dict{Index
     m = [sx * ey - sy * ex for (_, (sx, sy), (ex, ey), _) in wires]
 
     junctions = Dict{Indexes, Point}()
-    for i in 1:datasheet.wires_count
-        for j in (i+1):datasheet.wires_count
+    for i in 1:length(wires)
+        for j in (i+1):length(wires)
             c = delta_x[i] * delta_y[j] - delta_y[i] * delta_x[j]
 
             # if there is no intersection check the next one
