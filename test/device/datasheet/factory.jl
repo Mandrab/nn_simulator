@@ -4,6 +4,7 @@ using .NNs.Devices.Datasheets
     for i in 1:100
         ds = from_density(i, 20, 10, 1234)
         D = ds.wires_count * (10 ^ 2) / (20 ^ 2)
-        @test isapprox(D, i, atol=0.05, rtol=0)
+
+        @test D ≈ i atol=0.05
     end
 end
