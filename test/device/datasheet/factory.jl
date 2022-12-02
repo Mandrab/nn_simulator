@@ -1,5 +1,3 @@
-include("../../../src/device/datasheet/factory.jl")
-
 using .NNs.Devices.Datasheets
 
 @testset "Datasheet creation from density" begin
