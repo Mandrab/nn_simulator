@@ -23,7 +23,7 @@ end
 @testset "Junctions detection constistency" begin
     ds = from_density(5.0, 100)
     ws = drop_wires(ds)
-    js = detect_junctions(ws, ds)
+    js = detect_junctions(ws)
 
     for j in js
         indexes, point = j
