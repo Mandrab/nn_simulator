@@ -1,12 +1,12 @@
 export from_density
 
 """
-Returns a Datasheet that describes a device with a given density.
+Returns a Datasheet that describes a device with the required characteristics.
 
 # Parameters:
 - `density::Real`: Desired network density.
-- `size: Real`: Device package size (micro-meter).
-- `wires_length: Real`: Length of a single nanowire (micro-meter).
+- `size: Real`: Device package size in µm (micro-meters).
+- `wires_length: Real`: Length of a single nanowire in µm (micro-meters).
 - `seed: Int`: Device generation seed.
 
 # Returns:
@@ -14,9 +14,9 @@ Returns a Datasheet that describes a device with a given density.
 """
 function from_density(
         density::Real,
-        size::Real,
-        wires_length::Real,
-        seed::Int
+        size::Real = 500,
+        wires_length::Real = 14.0,
+        seed::Int = 1234
 )::Datasheet
 
     @info "Generating a datasheet with: " density
