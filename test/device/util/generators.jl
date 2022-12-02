@@ -20,22 +20,40 @@ include("../../../src/device/util/generators.jl")
     end
 end
 
-@testset "Junctions detection constistency" begin
+@testset "Junctions detection consistency" begin
     ds = from_density(5.0, 100)
     ws = drop_wires(ds)
     js = detect_junctions(ws)
 
-    for j in js
-        indexes, point = j
-        x, y = point
-
-        # test that the junction belong to the segment of both wires
+    # test that a junction position belongs to the segment of both wires
+    for (indexes, (x, y)) in js
         for index in indexes
             _, s, e, _ = ws[index]
             sx, sy = s
             ex, ey = e
 
             @test (y - sy) * (ex - sx) - (x - sx) * (ey - sy) ≈ 0 atol=1e-10
+        end
+    end
+end
+
+@testset "Adjacency calculation consistency" begin
+    ds = from_density(5.0, 100)
+    ws = drop_wires(ds)
+    js = detect_junctions(ws)
+    adj = calculate_adjacency(js, ds)
+
+    @test size(adj) == (ds.wires_count, ds.wires_count)
+
+    # test that each junction appears in the adjacency matrix
+    for i in 1:ds.wires_count
+        for j in 1:ds.wires_count
+
+            if (i => j) in keys(js) || (j => i) in keys(js)
+                @test adj[i, j] && adj[j, i]
+            else
+                @test ! adj[i, j] && ! adj[j, i]
+            end
         end
     end
 end
