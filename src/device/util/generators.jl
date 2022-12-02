@@ -114,7 +114,7 @@ function calculate_adjacency(junctions::Dict{Indexes, Point}, datasheet::Datashe
 
     @debug "Calculating adjacency"
 
-    matrix = Matrix{Bool}(undef, datasheet.wires_count, datasheet.wires_count)
+    matrix = falses(datasheet.wires_count, datasheet.wires_count)
     for ((x, y), _) in junctions
         matrix[x, y] = matrix[y, x] = true
     end
