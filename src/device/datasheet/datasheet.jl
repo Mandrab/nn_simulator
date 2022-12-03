@@ -10,12 +10,12 @@ Define the static properties of the device.
 - `wires_length_mean::Float64`: Average wire length in µm.
 - `wires_length_variance::Float64`: Length of the nano-wire in µm.
 - `size::Int64`: Length of one side of the device package in µm.
-- `kp:Float64`: One of the junction potentiation coefficient.
+- `kp:Float32`: One of the junction potentiation coefficient.
 - `eta_p::Int64`: One of the junction potentiation coefficient.
-- `kd::Float64`: One of the junction depression coefficient.
+- `kd::Float32`: One of the junction depression coefficient.
 - `eta_d::Int64`: One of the junction depression coefficient.
-- `Y_min::Float64`: Minimum admittance value.
-- `Y_max::Float64`: Maximum admittance value.
+- `Y_min::Float32`: Minimum admittance value.
+- `Y_max::Float32`: Maximum admittance value.
 - `seed::Int64`: Seed of the random number generator to create reproducible networks.
 """
 @with_kw struct Datasheet
@@ -28,14 +28,14 @@ Define the static properties of the device.
     size::Int64 = 500
 
     # update_edge_weights parameters
-    kp::Float64 = 0.0001
+    kp::Float32 = 0.0001f0
     eta_p::Int64 = 10
-    kd::Float64 = 0.5
+    kd::Float32 = 0.5f0
     eta_d::Int64 = 1
 
     # admittance ranges
-    Y_min::Float64 = 0.001
-    Y_max::Float64 = 0.001 * 100
+    Y_min::Float32 = 0.001f0
+    Y_max::Float32 = 0.001f0 * 100
 
     # random number generator seed
     seed::Int64 = 40

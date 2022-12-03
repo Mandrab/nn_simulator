@@ -11,10 +11,10 @@ using ...Devices.Datasheets
 export modified_voltage_node_analysis!
 
 """ Override default `similar` symbol with a custom approx function. """
-≈(a::Float64, b::Float64) = isapprox(a, b; atol=eps(Float64), rtol=0)
+≈(a::AbstractFloat, b::AbstractFloat) = isapprox(a, b; atol=eps(Float32), rtol=0)
 
 """ Override default `not-similar` symbol with a custom approx function. """
-≉(a::Float64, b::Float64) = ! isapprox(a, b; atol=eps(Float64), rtol=0)
+≉(a::AbstractFloat, b::AbstractFloat) = ! isapprox(a, b; atol=eps(Float32), rtol=0)
 
 """
 Perform the Modified Nodal Analysis to calculate the voltage distribution.
