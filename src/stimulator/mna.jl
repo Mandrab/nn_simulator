@@ -28,12 +28,12 @@ function modified_voltage_node_analysis!(device::Device, inputs::Vector{Float64}
 
     # create a vector to contain the voltages of the input nodes
     # the ground nodes are not present
-    V = zeros(Float64, length(device.V))
-    append!(V, collect(filter(v -> v ≉ .0, inputs)))
+    V = zeros(Float32, length(device.V))
+    append!(V, collect(map(Float32, filter(v -> v ≉ .0, inputs))))
 
     # create a vector to identify the sources (1: source, 0: non-source)
     # each column contains only one '1': there is 1 column for each source
-    M = CUDA.zeros(Float64, length(V), length(V))
+    M = CUDA.zeros(Float32, length(V), length(V))
 
     # enumerate the inputs only (used to define
     # their position on bottom and right of M)
