@@ -58,11 +58,19 @@ function simplify(device::Device, ds::Datasheet)::Tuple{Device, Datasheet}
     # get the index of the nodes belonging to the largest connected component
     mask = largest_connected_component(mapping)
 
+    # create a lookup table to map the old wires index to a new one
+    lut = Dict(map(ab -> ab[2] => ab[1], enumerate(mask)))
+
     # remove the nodes not belonging to the largest connected component
     wires = device.wires[mask]
 
     # remove the junctions between nodes not in the connected component
-    junctions = Dict(filter(p -> first(first(p)) ∈ mask, device.junctions))
+    # and update the wires index
+    junctions = Dict(
+        (lut[i] => lut[j]) => p
+        for ((i, j), p) in collect(device.junctions)
+        if i ∈ mask
+    )
 
     # delete all the components except the largest one
     A = prune(device.A, mask)
