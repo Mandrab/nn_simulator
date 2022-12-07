@@ -37,9 +37,9 @@ ground!(device::Device, wire_index::Integer) = append!(device.grounds, wire_inde
 Connect a grounded resistence to a device wire.
 
 ```
-°---°
- \ /---------R---------GND
-  °
+*-*
+|/-----------R---------GND
+*
 Device    Resistor    Ground
 ```
 
