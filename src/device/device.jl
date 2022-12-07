@@ -23,8 +23,8 @@ Contains the state of the nanowire network.
 """
 mutable struct Device{
         BoolMatrix<:AbstractMatrix{Bool},
-        FloatMatrix<:AbstractMatrix{Float32},
-        FloatVector<:AbstractVector{Float32}
+        FloatMatrix<:AbstractMatrix{<:AbstractFloat},
+        FloatVector<:AbstractVector{<:AbstractFloat}
 }
     wires::Vector{Wire}
 
@@ -35,5 +35,5 @@ mutable struct Device{
     Y::FloatMatrix
     V::FloatVector
 
-    grounds::Int64
+    grounds::Vector{Int64}
 end
