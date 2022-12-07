@@ -1,7 +1,6 @@
 include("./util/generators.jl")
 include("./util/networks.jl")
 
-using CUDA
 using .Devices.Datasheets
 using .Devices.Networks
 
@@ -27,14 +26,14 @@ function realize(datasheet::Datasheet)::Device
     junctions = detect_junctions(wires)
 
     # generate graph object and adjacency matrix
-    A = CuArray(calculate_adjacency(junctions, datasheet))
+    A = calculate_adjacency(junctions, datasheet)
 
     # calculate remaining data
-    G = CUDA.zeros(size(A))
+    G = zeros(Float32, size(A))
     Y = datasheet.Y_min .* A
-    V = CUDA.zeros(datasheet.wires_count)
+    V = zeros(Float32, datasheet.wires_count)
 
-    return Device(wires, junctions, A, G, Y, V, 0)
+    return Device(wires, junctions, A, G, Y, V, Int64[])
 end
 
 """
@@ -79,7 +78,7 @@ function simplify(device::Device, ds::Datasheet)::Tuple{Device, Datasheet}
     V = prune(device.V, mask)
 
     # create the new structures
-    device = Device(wires, junctions, A, G, Y, V, 0)
+    device = Device(wires, junctions, A, G, Y, V, Int64[])
     datasheet = Datasheet(
         length(wires), ds.wires_length_mean, ds.wires_length_variance,
         ds.size, ds.kp, ds.eta_p, ds.kd, ds.eta_d, ds.Y_min, ds.Y_max, ds.seed
