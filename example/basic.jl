@@ -1,5 +1,6 @@
 using .NNs.Devices
 using .NNs.Devices.Datasheets
+using .NNs.Devices.Utils
 using .NNs.Stimulators
 
 function main(density::AbstractFloat, size::Int, iterations::Int)
@@ -11,6 +12,9 @@ function main(density::AbstractFloat, size::Int, iterations::Int)
     datasheet = from_density(density, size, 15.0, seed)
     device = realize(datasheet)
     device, datasheet = simplify(device, datasheet)
+
+    # move the device to the GPU device
+    device = optimize(device)
 
     # create stimulus
     voltages = collect(map(v ->
