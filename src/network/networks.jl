@@ -1,5 +1,3 @@
-module Networks
-
 export connected_components, largest_connected_component, prune
 
 """
@@ -71,5 +69,3 @@ Remove every row and column not belonging to the set.
 """
 prune(array::AbstractMatrix, mask::AbstractVector)::AbstractMatrix = array[mask, mask]
 prune(array::AbstractVector, mask::AbstractVector)::AbstractVector = array[mask]
-
-end
