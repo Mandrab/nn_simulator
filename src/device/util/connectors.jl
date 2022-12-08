@@ -1,3 +1,7 @@
+using ..Devices
+
+export ground!, connect!
+
 """
 Add a ground to the device.
 This adds a row and a column at the bottom & right of the matrixes.
