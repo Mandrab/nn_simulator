@@ -1,8 +1,5 @@
-using .NNs.Devices
+using .NNs.Devices: drop_wires, detect_junctions, calculate_adjacency
 using .NNs.Devices.Datasheets
-
-include("../../../src/device/device.jl")
-include("../../../src/device/util/generators.jl")
 
 @testset "Wires dropcast consistency" begin
     ds = from_density(5.0, 100)
