@@ -29,7 +29,7 @@ function realize(datasheet::Datasheet)::Device
 
     # calculate remaining data
     G = zeros(Float32, size(A))
-    Y = datasheet.Y_min .* A
+    Y = Float32.(datasheet.Y_min .* A)
     V = zeros(Float32, datasheet.wires_count)
 
     return Device(wires, junctions, A, G, Y, V, Int64[])
