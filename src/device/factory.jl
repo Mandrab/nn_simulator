@@ -1,8 +1,7 @@
 include("./util/generators.jl")
-include("./util/networks.jl")
 
 using .Devices.Datasheets
-using .Devices.Networks
+using ..Networks
 
 export realize, simplify
 
