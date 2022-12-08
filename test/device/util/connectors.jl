@@ -1,7 +1,6 @@
-using .NNs.Devices.Datasheets
 using .NNs.Devices
-
-include("../../../src/device/util/connectors.jl")
+using .NNs.Devices.Datasheets
+using .NNs.Devices.Utils
 
 @testset "Device grounding" begin
     ds = from_density(5.0)
