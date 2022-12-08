@@ -19,10 +19,11 @@ module NNs
         include("./device/device.jl")
         include("./device/factory.jl")
 
-        """Utilities for the device manipulation."""
+        """Utilities for the device manipulation and optimization."""
         module Utils
 
             include("./device/util/connectors.jl")
+            include("./device/util/optimizations.jl")
         end
 
     end
