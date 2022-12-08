@@ -1,26 +1,36 @@
 module NNs
 
+    """Utilities to work with networks in their matrix representation."""
+    module Networks
+
+        include("./network/networks.jl")
+    end
+
+    """Definition and utilities for nanowire-network devices."""
     module Devices
 
+        """Definition and utilities for the formal representation of devices."""
         module Datasheets
 
-            # include the datasheet data
             include("./device/datasheet/datasheet.jl")
             include("./device/datasheet/factory.jl")
-
         end
 
-        # include the device data
         include("./device/device.jl")
         include("./device/factory.jl")
 
+        """Utilities for the device manipulation."""
+        module Utils
+
+            include("./device/util/connectors.jl")
+        end
+
     end
 
+    """Utilities for the device stimulation."""
     module Stimulators
 
-        # include the device stimulator
         include("./stimulator/stimulator.jl")
-
     end
 
 end
