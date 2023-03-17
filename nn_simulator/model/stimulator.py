@@ -49,9 +49,12 @@ def update_conductance(net: Network, datasheet: Datasheet, delta_time: float):
         Time elapsed from the last update
     """
 
+    A = net.adjacency[:-net.external_grounds, :-net.external_grounds]
+    G = net.admittance[:-net.external_grounds, :-net.external_grounds]
+    V = net.voltage[:-net.external_grounds]
+
     # calculate delta voltage on a junction
-    delta_v = net.device.adjacency * net.device.voltage
-    delta_v = cp.absolute(net.device.voltage.reshape(-1, 1) - delta_v)
+    delta_v = cp.absolute(V.reshape(-1, 1) - A * V)
 
     # excitation and depression rate coefficients
     kp = datasheet.kp0 * cp.exp(datasheet.eta_p * delta_v)
@@ -59,12 +62,14 @@ def update_conductance(net: Network, datasheet: Datasheet, delta_time: float):
     kpd = kp + kd
 
     # calculate and set admittance [0-1]
-    partial = kd / kp * net.device.admittance * cp.exp(-delta_time * kpd)
-    net.device.admittance = net.device.adjacency * kp / kpd * (1 + partial)
+    partial = kd / kp * G * cp.exp(-delta_time * kpd)
+    G = A * kp / kpd * (1 + partial)
+    net.admittance[:-net.external_grounds, :-net.external_grounds] = G
 
     # calculate and set circuit conductance
-    partial = net.device.admittance * (datasheet.Y_max - datasheet.Y_min)
-    net.device.circuit = net.device.adjacency * (datasheet.Y_min + partial)
+    partial = G * (datasheet.Y_max - datasheet.Y_min)
+    Y = A * (datasheet.Y_min + partial)
+    net.circuit[:-net.external_grounds, :-net.external_grounds] = Y
 
 
 def modified_voltage_node_analysis(network: Network, inputs: Dict[int, float]):
