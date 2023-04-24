@@ -2,14 +2,7 @@
 name 		= 'nn_simulator'
 version 	= '2.0.1'
 authors		= [
-<<<<<<< Updated upstream
-    {
-	name 	= 'Paolo Baldini',
-	email	= 'paolobaldini01@gmail.com' 
-    }
-=======
     { name = 'Paolo Baldini', email	= 'paolobaldini01@gmail.com' }
->>>>>>> Stashed changes
 ]
 description	= 'Simulator for a nanowire-network with memristive behaviour'
 classifiers	= [
@@ -25,13 +18,8 @@ classifiers	= [
 
 [build-system]
 requires	= [
-<<<<<<< Updated upstream
-    'cupy',
-    'matplotlib',
-=======
     'matplotlib',
     'more-itertools',
->>>>>>> Stashed changes
     'networkx',
     'numpy',
     'scipy',
