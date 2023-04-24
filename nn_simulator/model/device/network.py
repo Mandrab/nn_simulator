@@ -98,7 +98,7 @@ class Network:
         return self.device_grounds + self.external_grounds
 
 
-def copy(network: Network, ram: bool = True) -> Network:
+def copy(network: Network) -> Network:
     """
     Makes a deep copy of the nanowire network.
 
@@ -106,9 +106,6 @@ def copy(network: Network, ram: bool = True) -> Network:
     ----------
     network: Network
         the network to copy
-    ram: bool
-        specify if the copied system should remain in the gpu memory or be moved
-        to the RAM
     Returns
     -------
     A copy of the input nanowire network.
@@ -116,18 +113,12 @@ def copy(network: Network, ram: bool = True) -> Network:
     xw, yw = network.wires_position
     xj, yj = network.junctions_position
 
-    adj = np.asnumpy(network.adjacency) if ram else network.adjacency.copy()
-    wp = (
-        np.asnumpy(xw) if ram else xw.copy(),
-        np.asnumpy(yw) if ram else yw.copy()
-    )
-    jp = (
-        np.asnumpy(xj) if ram else xj.copy(),
-        np.asnumpy(yj) if ram else yj.copy()
-    )
-    circuit = np.asnumpy(network.circuit) if ram else network.circuit.copy()
-    adm = np.asnumpy(network.admittance) if ram else network.admittance.copy()
-    voltage = np.asnumpy(network.voltage) if ram else network.voltage.copy()
+    adj = network.adjacency if ram else network.adjacency.copy()
+    wp = (xw.copy(), yw.copy())
+    jp = (xj.copy(), yj.copy())
+    circuit = network.circuit.copy()
+    adm = network.admittance.copy()
+    voltage = network.voltage.copy()
 
     d_grounds, e_grounds = network.device_grounds, network.external_grounds
     return Network(adj, wp, jp, circuit, adm, voltage, d_grounds, e_grounds)

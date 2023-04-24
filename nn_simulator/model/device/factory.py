@@ -92,7 +92,7 @@ def largest_connected_component(
     """
 
     # get list of nodes membership in the graph
-    _, labels = connected_components(np.asnumpy(graph), directed=False)
+    _, labels = connected_components(graph, directed=False)
 
     # count nodes of each component
     unique_labels, count = np.unique(labels, return_counts=True)
@@ -122,6 +122,6 @@ def clear_matrix(matrix: np.ndarray, mask: List[int]) -> np.ndarray:
     A cupy ndarray cleaned by all the exceeding nodes.
     """
 
-    matrix = np.delete(np.asnumpy(matrix), mask, 0)
+    matrix = np.delete(matrix, mask, 0)
     matrix = np.delete(matrix, mask, 1)
     return np.asarray(matrix, dtype=np.float32)

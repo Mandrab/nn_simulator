@@ -152,37 +152,3 @@ def nx2nn(graph: nx.Graph) -> Network:
     )
 
     return network
-
-
-def to_np(array: np.ndarray | np.ndarray) -> np.ndarray:
-    """
-    Ensure that the given array is numpy one. If it's not, it is converted.
-
-    Parameters
-    ----------
-    array: np.ndarray | np.ndarray
-        The array that is wanted to be a numpy one
-    Returns
-    -------
-    A numpy version of the input array.
-    """
-
-    return np.asnumpy(array) if isinstance(array, np.ndarray) else array
-
-
-def to_cp(array: np.ndarray | np.ndarray) -> np.ndarray:
-    """
-    Ensure that the given array is cupy one. If it's not, it is converted.
-
-    Parameters
-    ----------
-    array: np.ndarray | np.ndarray
-        The array that is wanted to be a numpy one
-    Returns
-    -------
-    A cupy version of the input array.
-    """
-
-    if isinstance(array, np.ndarray):
-        return np.asarray(array, dtype=np.float32)
-    return array

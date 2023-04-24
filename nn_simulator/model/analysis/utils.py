@@ -1,7 +1,6 @@
 import numpy as np
 
 from nn_simulator.model.device.network import Network
-from nn_simulator.model.device.networks import to_cp
 
 
 def delta_voltage(network: Network) -> np.ndarray:
@@ -17,7 +16,7 @@ def delta_voltage(network: Network) -> np.ndarray:
     An cupy ndarray representing the voltage difference on each junction.
     """
 
-    adj, voltage = to_cp(network.adjacency), to_cp(network.voltage)
+    adj, voltage = network.adjacency, network.voltage
     return np.absolute(adj * (voltage.reshape(-1, 1) - adj * voltage))
 
 
@@ -34,4 +33,4 @@ def calculate_currents(network: Network) -> np.ndarray:
     A matrix with the current value specified in the node-node intersection.
     """
 
-    return to_cp(delta_voltage(network)) * to_cp(network.circuit)
+    return delta_voltage(network) * network.circuit
