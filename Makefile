@@ -11,6 +11,6 @@ venv_on:
 	source venv/bin/activate
 
 clear:
-	rm -rf build dist .eggs connections.dat datasheet.dat graph.dat wires.dat
+	rm -rf build dist .eggs nn_simulator.egg-info .pytest_cache connections.dat datasheet.dat graph.dat wires.dat
 
 .PHONY: build test install venv_on clear
