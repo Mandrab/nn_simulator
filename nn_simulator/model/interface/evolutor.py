@@ -1,4 +1,4 @@
-import cupy as cp
+import numpy as np
 import random
 
 from nn_simulator.model.device.network import Network
@@ -52,20 +52,20 @@ def minimum_distance_selection(
     def _(network: Network, _: List[int]) -> Set[int]:
 
         # create a mask of viable nodes (false = viable; initially all)
-        viable = cp.zeros(network.nodes - network.external_grounds, dtype=bool)
+        viable = np.zeros(network.nodes - network.external_grounds, dtype=bool)
 
         # set unavailable (i.e., true) the specified nodes
         viable[outputs] = True
 
         # find nodes 'distance' distant from the output
-        def neighbours(mask: cp.ndarray, decreased_distance: int) -> cp.ndarray:
+        def neighbours(mask: np.ndarray, decreased_distance: int) -> np.ndarray:
 
             # base condition: distance 0 is empty set
             if decreased_distance <= 0:
                 return mask
 
             # set the nodes neighbor as unavailable
-            mask |= cp.sum(network.adjacency[mask], axis=0, dtype=bool)
+            mask |= np.sum(network.adjacency[mask], axis=0, dtype=bool)
 
             # recur until found all neighbours
             return neighbours(mask, decreased_distance - 1)
@@ -75,7 +75,7 @@ def minimum_distance_selection(
 
         # negate the boolean values if required
         if not negate:
-            viable = cp.logical_not(viable)
+            viable = np.logical_not(viable)
 
         # remove device grounds from list of available nodes
         if network.device_grounds > 0:

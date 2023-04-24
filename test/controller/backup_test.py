@@ -1,4 +1,4 @@
-import cupy as cp
+import numpy as np
 
 from nn_simulator import default as i_default
 from nn_simulator.controller.backup import save, exist, read
@@ -23,6 +23,6 @@ def test_save_and_import_completeness():
 
     for k, v in i_data.items():
         assert k in f_data
-        assert cp.allclose(v, f_data[k])
+        assert np.allclose(v, f_data[k])
 
     assert i_connections == f_connections

@@ -1,4 +1,3 @@
-import cupy as cp
 import numpy as np
 
 from nn_simulator.model.device.network import Network
@@ -33,9 +32,9 @@ def nanowire_network(
     graph, mask = largest_connected_component(network_data['adj_matrix'])
 
     # create a matrix to store x and y positions of a wire
-    wx, wy = tuple(cp.zeros_like(network_data['adj_matrix']) for _ in range(2))
+    wx, wy = tuple(np.zeros_like(network_data['adj_matrix']) for _ in range(2))
     for matrix, _ in zip((wx, wy), ('xc', 'yc')):
-        cp.fill_diagonal(matrix, network_data[_])
+        np.fill_diagonal(matrix, network_data[_])
 
     # reduce the matrix to the largest component one
     wx, wy = [clear_matrix(_, mask) for _ in (wx, wy)]
@@ -44,12 +43,12 @@ def nanowire_network(
     adj = np.matrix.flatten(np.triu(network_data['adj_matrix']))
 
     # set the junctions position
-    jx, jy = [cp.reshape(
-        cp.asarray([
+    jx, jy = [np.reshape(
+        np.asarray([
             next(_0)
             if _1 != 0 else 0
             for _1 in adj
-        ], dtype=cp.float32),
+        ], dtype=np.float32),
         network_data['adj_matrix'].shape
     ) for _0 in [
         iter(network_data[k]) for k in ('xi', 'yi')
@@ -66,12 +65,12 @@ def nanowire_network(
 
     # save adjacency matrix of reduced network
     return Network(
-        adjacency=cp.asarray(graph, dtype=cp.float32),
+        adjacency=np.asarray(graph, dtype=np.float32),
         wires_position=(wx, wy),
         junctions_position=(jx, jy),
-        circuit=cp.asarray(circuit, dtype=cp.float32),
-        admittance=cp.zeros_like(circuit),
-        voltage=cp.zeros(len(circuit)),
+        circuit=np.asarray(circuit, dtype=np.float32),
+        admittance=np.zeros_like(circuit),
+        voltage=np.zeros(len(circuit)),
         device_grounds=grounds
     )
 
@@ -93,7 +92,7 @@ def largest_connected_component(
     """
 
     # get list of nodes membership in the graph
-    _, labels = connected_components(cp.asnumpy(graph), directed=False)
+    _, labels = connected_components(np.asnumpy(graph), directed=False)
 
     # count nodes of each component
     unique_labels, count = np.unique(labels, return_counts=True)
@@ -106,7 +105,7 @@ def largest_connected_component(
     return clear_matrix(graph, mask), mask
 
 
-def clear_matrix(matrix: np.ndarray, mask: List[int]) -> cp.ndarray:
+def clear_matrix(matrix: np.ndarray, mask: List[int]) -> np.ndarray:
     """
     Clear a matrix removing the nodes (i.e., columns and rows) specified by the
     mask.
@@ -115,7 +114,7 @@ def clear_matrix(matrix: np.ndarray, mask: List[int]) -> cp.ndarray:
     ----------
     matrix: np.ndarray
         the matrix to clean
-    mask: cp.ndarray
+    mask: np.ndarray
         the boolean mask that specify the elements to remove. A value of true
         means a removal
     Returns
@@ -123,6 +122,6 @@ def clear_matrix(matrix: np.ndarray, mask: List[int]) -> cp.ndarray:
     A cupy ndarray cleaned by all the exceeding nodes.
     """
 
-    matrix = np.delete(cp.asnumpy(matrix), mask, 0)
+    matrix = np.delete(np.asnumpy(matrix), mask, 0)
     matrix = np.delete(matrix, mask, 1)
-    return cp.asarray(matrix, dtype=cp.float32)
+    return np.asarray(matrix, dtype=np.float32)

@@ -1,4 +1,4 @@
-import cupy as cp
+import numpy as np
 
 from nn_simulator.model.device.datasheet.Datasheet import default
 from nn_simulator.model.interface.connector import connect
@@ -21,20 +21,20 @@ def test_load_connection():
     G   0 0 1 0
     """
 
-    initial = 10e-3 * cp.array([
+    initial = 10e-3 * np.array([
         [0, 1, 0],
         [1, 0, 1],
         [0, 1, 0]
-    ], dtype=cp.float32)
+    ], dtype=np.float32)
 
-    final = 10e-3 * cp.array([
+    final = 10e-3 * np.array([
         [0, 1, 0, 0],
         [1, 0, 1, 0],
         [0, 1, 0, 1],
         [0, 0, 1, 0]
-    ], dtype=cp.float32)
+    ], dtype=np.float32)
 
     network = simple_network(initial, 1)
     connect(network, wire_idx=2, resistance=1 / default.Y_min)
 
-    assert cp.allclose(network.circuit, final, 10e-3, 10e-3)
+    assert np.allclose(network.circuit, final, 10e-3, 10e-3)

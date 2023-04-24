@@ -1,10 +1,10 @@
-import cupy as cp
+import numpy as np
 
 from nn_simulator.model.device.network import Network
 from nn_simulator.model.device.networks import to_cp
 
 
-def delta_voltage(network: Network) -> cp.ndarray:
+def delta_voltage(network: Network) -> np.ndarray:
     """
     Calculate delta voltage on a junction.
 
@@ -18,10 +18,10 @@ def delta_voltage(network: Network) -> cp.ndarray:
     """
 
     adj, voltage = to_cp(network.adjacency), to_cp(network.voltage)
-    return cp.absolute(adj * (voltage.reshape(-1, 1) - adj * voltage))
+    return np.absolute(adj * (voltage.reshape(-1, 1) - adj * voltage))
 
 
-def calculate_currents(network: Network) -> cp.ndarray:
+def calculate_currents(network: Network) -> np.ndarray:
     """
     Define currents in the network multiplying voltages and conductances.
 

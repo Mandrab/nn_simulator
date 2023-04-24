@@ -1,4 +1,3 @@
-import cupy as cp
 import networkx as nx
 import numpy as np
 
@@ -113,20 +112,20 @@ def nx2nn(graph: nx.Graph) -> Network:
     Matrix format of the nanowire network.
     """
 
-    adjacency = cp.asarray(nx.to_numpy_array(graph), dtype=cp.float32)
+    adjacency = np.asarray(nx.to_numpy_array(graph), dtype=np.float32)
 
     # get wires position from node
-    wx, wy = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
+    wx, wy = np.zeros_like(adjacency), np.zeros_like(adjacency)
     for n in graph.nodes():
         wx[n, n], wy[n, n] = graph.nodes[n]['pos']
 
     # add junction position to edge
-    jx, jy = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
+    jx, jy = np.zeros_like(adjacency), np.zeros_like(adjacency)
     for u, v in graph.edges():
         jx[v, u], jy[v, u] = jx[u, v], jy[u, v] = graph[u][v]['jx_pos']
 
     # get junction conductance to edge
-    circuit, admittance = cp.zeros_like(adjacency), cp.zeros_like(adjacency)
+    circuit, admittance = np.zeros_like(adjacency), np.zeros_like(adjacency)
     for u, v in graph.edges():
         edge = graph[u][v]
         circuit[u, v] = circuit[v, u] = edge['Y'] if 'Y' in edge else 0
@@ -137,7 +136,7 @@ def nx2nn(graph: nx.Graph) -> Network:
     e_grounds = sum(1 for _ in graph.nodes() if 'external' in graph.nodes[_])
 
     # get wire voltage to nodes and set grounds
-    voltage = cp.zeros(len(adjacency))
+    voltage = np.zeros(len(adjacency))
     for n in graph.nodes():
         voltage[n] = graph.nodes[n]['V'] if 'V' in graph.nodes[n] else 0
 
@@ -155,29 +154,29 @@ def nx2nn(graph: nx.Graph) -> Network:
     return network
 
 
-def to_np(array: np.ndarray | cp.ndarray) -> np.ndarray:
+def to_np(array: np.ndarray | np.ndarray) -> np.ndarray:
     """
     Ensure that the given array is numpy one. If it's not, it is converted.
 
     Parameters
     ----------
-    array: np.ndarray | cp.ndarray
+    array: np.ndarray | np.ndarray
         The array that is wanted to be a numpy one
     Returns
     -------
     A numpy version of the input array.
     """
 
-    return cp.asnumpy(array) if isinstance(array, cp.ndarray) else array
+    return np.asnumpy(array) if isinstance(array, np.ndarray) else array
 
 
-def to_cp(array: np.ndarray | cp.ndarray) -> cp.ndarray:
+def to_cp(array: np.ndarray | np.ndarray) -> np.ndarray:
     """
     Ensure that the given array is cupy one. If it's not, it is converted.
 
     Parameters
     ----------
-    array: np.ndarray | cp.ndarray
+    array: np.ndarray | np.ndarray
         The array that is wanted to be a numpy one
     Returns
     -------
@@ -185,5 +184,5 @@ def to_cp(array: np.ndarray | cp.ndarray) -> cp.ndarray:
     """
 
     if isinstance(array, np.ndarray):
-        return cp.asarray(array, dtype=cp.float32)
+        return np.asarray(array, dtype=np.float32)
     return array

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import cupy as cp
+import numpy as np
 
 from dataclasses import dataclass
 from typing import Tuple
@@ -13,30 +13,30 @@ class Network:
 
     Fields
     ------
-    adjacency: cp.ndarray
+    adjacency: np.ndarray
         adjacency (i.e., connections) matrix of the device
-    wires_position: Tuple[cp.ndarray, cp.ndarray]
+    wires_position: Tuple[np.ndarray, np.ndarray]
         x and y position of the wires
-    junctions_position: Tuple[cp.ndarray, cp.ndarray]
+    junctions_position: Tuple[np.ndarray, np.ndarray]
         x and y position of the wires junctions
-    circuit: cp.ndarray
+    circuit: np.ndarray
         adjacency matrix with conductances instead of 1s
-    admittance: cp.ndarray
+    admittance: np.ndarray
         admittance matrix for the junction resistance update
-    voltage: cp.ndarray
+    voltage: np.ndarray
         voltages of the circuit nodes
     grounds: int
         specify the number of nodes to be considered ground (those have to be at
         the rightmost part of the matrix)
     """
 
-    adjacency: cp.ndarray
-    wires_position: Tuple[cp.ndarray, cp.ndarray]
-    junctions_position: Tuple[cp.ndarray, cp.ndarray]
+    adjacency: np.ndarray
+    wires_position: Tuple[np.ndarray, np.ndarray]
+    junctions_position: Tuple[np.ndarray, np.ndarray]
 
-    circuit: cp.ndarray
-    admittance: cp.ndarray
-    voltage: cp.ndarray
+    circuit: np.ndarray
+    admittance: np.ndarray
+    voltage: np.ndarray
 
     device_grounds: int = 0
     external_grounds: int = 0
@@ -116,18 +116,18 @@ def copy(network: Network, ram: bool = True) -> Network:
     xw, yw = network.wires_position
     xj, yj = network.junctions_position
 
-    adj = cp.asnumpy(network.adjacency) if ram else network.adjacency.copy()
+    adj = np.asnumpy(network.adjacency) if ram else network.adjacency.copy()
     wp = (
-        cp.asnumpy(xw) if ram else xw.copy(),
-        cp.asnumpy(yw) if ram else yw.copy()
+        np.asnumpy(xw) if ram else xw.copy(),
+        np.asnumpy(yw) if ram else yw.copy()
     )
     jp = (
-        cp.asnumpy(xj) if ram else xj.copy(),
-        cp.asnumpy(yj) if ram else yj.copy()
+        np.asnumpy(xj) if ram else xj.copy(),
+        np.asnumpy(yj) if ram else yj.copy()
     )
-    circuit = cp.asnumpy(network.circuit) if ram else network.circuit.copy()
-    adm = cp.asnumpy(network.admittance) if ram else network.admittance.copy()
-    voltage = cp.asnumpy(network.voltage) if ram else network.voltage.copy()
+    circuit = np.asnumpy(network.circuit) if ram else network.circuit.copy()
+    adm = np.asnumpy(network.admittance) if ram else network.admittance.copy()
+    voltage = np.asnumpy(network.voltage) if ram else network.voltage.copy()
 
     d_grounds, e_grounds = network.device_grounds, network.external_grounds
     return Network(adj, wp, jp, circuit, adm, voltage, d_grounds, e_grounds)

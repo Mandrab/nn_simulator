@@ -1,5 +1,5 @@
-import cupy as cp
 import networkx as nx
+import numpy as np
 
 from collections.abc import Iterable, Generator
 from dataclasses import dataclass, field
@@ -79,7 +79,7 @@ class Evolution:
 
     def information_centrality(
             self, reverse: bool = False
-    ) -> Iterable[cp.ndarray]:
+    ) -> Iterable[np.ndarray]:
         """
         Return information centrality measure for the network evolution.
 
@@ -98,9 +98,9 @@ class Evolution:
         if reverse:
             graphs = reversed(graphs)
 
-        def _(network: Nw) -> cp.ndarray:
+        def _(network: Nw) -> np.ndarray:
             centrality = nx.information_centrality(nn2nx(network), weight='Y')
-            return cp.asarray(list(centrality.values()), dtype=cp.float32)
+            return np.asarray(list(centrality.values()), dtype=np.float32)
 
         return map(_, graphs)
 

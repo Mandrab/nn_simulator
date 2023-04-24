@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import cupy as cp
+import numpy as np
 
 from collections import Counter
 from functools import reduce
@@ -186,7 +186,7 @@ def information_centrality(_, ax, plot_data: Evolution, **others):
     """Plot the information centrality of the final graph"""
 
     # scaling information centrality to node sizes
-    centrality = [*map(cp.asnumpy, plot_data.information_centrality())]
+    centrality = [*map(np.asnumpy, plot_data.information_centrality())]
     graph = nn2nx(plot_data.graph)
 
     min_centrality = min([min(element) for element in centrality])

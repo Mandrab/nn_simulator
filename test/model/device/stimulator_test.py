@@ -1,4 +1,4 @@
-import cupy as cp
+import numpy as np
 
 from nn_simulator import default
 from nn_simulator.model.device.network import Network
@@ -47,30 +47,30 @@ samples = [
 ]
 
 
-def evaluate_mna_samples(circuit: cp.ndarray, expected_result: cp.ndarray):
+def evaluate_mna_samples(circuit: np.ndarray, expected_result: np.ndarray):
     network = Network(
-        adjacency=cp.zeros_like(circuit),
+        adjacency=circuit > 0,
         wires_position=tuple(), junctions_position=tuple(),
         circuit=circuit,
-        admittance=cp.zeros_like(circuit),
-        voltage=cp.zeros((1, len(circuit))),
+        admittance=np.zeros_like(circuit),
+        voltage=np.zeros((1, len(circuit))),
         device_grounds=1
     )
     modified_voltage_node_analysis(network, {0: 5.00})
-    assert cp.allclose(network.voltage[:-1], expected_result)
+    assert np.allclose(network.voltage[:-1], expected_result)
 
 
 def test_samples():
     for circuit, expected_result in samples:
-        evaluate_mna_samples(cp.asarray(circuit), cp.asarray(expected_result))
+        evaluate_mna_samples(np.asarray(circuit), np.asarray(expected_result))
 
 
 def test_non_stimulated_change():
-    circuit = cp.array([
+    circuit = np.array([
         [0, 1, 0],
         [1, 0, 1],
         [0, 1, 0]
-    ], dtype=cp.float32)
+    ], dtype=np.float32)
     network = simple_network(circuit, 1)
 
     # update the network to let the simulator converge to stable values
@@ -79,16 +79,16 @@ def test_non_stimulated_change():
 
     # update an additional time and get the network state
     update_conductance(network, default, 1.0)
-    assert cp.allclose(initial, network.circuit, atol=10e-3)
+    assert np.allclose(initial, network.circuit, atol=10e-3)
 
 
 def test_stimulated_change():
-    circuit = cp.array([
+    circuit = np.array([
         [0, 1, 0, 0],
         [1, 0, 1, 0],
         [0, 1, 0, 1],
         [0, 0, 1, 0]
-    ], dtype=cp.float32)
+    ], dtype=np.float32)
     network = simple_network(circuit, 1)
 
     # update the network to let the simulator converge to stable values
@@ -100,4 +100,4 @@ def test_stimulated_change():
 
     # update an additional time and get the network state
     update_conductance(network, default, 0.1)
-    assert not cp.allclose(initial, network.circuit, atol=10e-3)
+    assert not np.allclose(initial, network.circuit, atol=10e-3)
