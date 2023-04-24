@@ -1,4 +1,4 @@
-import cupy as cp
+import numpy as np
 
 from nn_simulator.model.device import Datasheet
 from nn_simulator.model.device.network import Network
@@ -54,15 +54,15 @@ def update_conductance(net: Network, datasheet: Datasheet, delta_time: float):
     V = net.voltage[:-net.external_grounds]
 
     # calculate delta voltage on a junction
-    delta_v = cp.absolute(V.reshape(-1, 1) - A * V)
+    delta_v = np.absolute(V.reshape(-1, 1) - A * V)
 
     # excitation and depression rate coefficients
-    kp = datasheet.kp0 * cp.exp(datasheet.eta_p * delta_v)
-    kd = datasheet.kd0 * cp.exp(-datasheet.eta_d * delta_v)
+    kp = datasheet.kp0 * np.exp(datasheet.eta_p * delta_v)
+    kd = datasheet.kd0 * np.exp(-datasheet.eta_d * delta_v)
     kpd = kp + kd
 
     # calculate and set admittance [0-1]
-    partial = kd / kp * G * cp.exp(-delta_time * kpd)
+    partial = kd / kp * G * np.exp(-delta_time * kpd)
     G = A * kp / kpd * (1 + partial)
     net.admittance[:-net.external_grounds, :-net.external_grounds] = G
 
@@ -87,33 +87,33 @@ def modified_voltage_node_analysis(network: Network, inputs: Dict[int, float]):
     # create a vector to contain the voltages of the input nodes
     # the ground nodes are not present
     voltages = [v for _, v in sorted(inputs.items())]
-    voltages = cp.asarray(voltages, dtype=cp.float32)
-    Z = cp.append(cp.zeros(network.wires), voltages)
+    voltages = np.asarray(voltages, dtype=np.float32)
+    Z = np.append(np.zeros(network.wires), voltages)
 
     # create a vector to identify the sources (1: source, 0: non-source)
     # each column contains only one '1': there is 1 column for each source
-    B = cp.zeros((network.wires, len(inputs)))
+    B = np.zeros((network.wires, len(inputs)))
     for idx, source in enumerate(inputs):
         B[source][idx] = 1
 
     # stores the sum of the conductances of the edges incident on a node
     # each row refer to a specific node and the index r,c represent the
     # conductance in the arch from node r to c
-    G = cp.negative(network.circuit)
-    summa = cp.negative(cp.sum(G, axis=1))
-    cp.fill_diagonal(G, summa)
+    G = np.negative(network.circuit)
+    summa = np.negative(np.sum(G, axis=1))
+    np.fill_diagonal(G, summa)
 
     # add sources identifiers as the last column of the matrix
-    Y = cp.hstack((G[:-network.grounds, :-network.grounds], B))
+    Y = np.hstack((G[:-network.grounds, :-network.grounds], B))
 
     # add a slot in the sources array
-    B = cp.vstack((B, cp.zeros((len(inputs), len(inputs)))))
-    B = cp.transpose(B)
+    B = np.vstack((B, np.zeros((len(inputs), len(inputs)))))
+    B = np.transpose(B)
 
     # construct Y matrix as a combination of G, B, D in the form [(G B); (B' D)]
     # add the sources also to the bottom of the matrix
-    Y = cp.vstack((Y, B))
+    Y = np.vstack((Y, B))
 
     # perform analysis of the circuit (Yx = z -> x = Y^(-1)z)
-    network.voltage = cp.linalg.solve(Y, Z)[:-len(inputs)]
-    network.voltage = cp.pad(network.voltage, (0, network.grounds))
+    network.voltage = np.linalg.solve(Y, Z)[:-len(inputs)]
+    network.voltage = np.pad(network.voltage, (0, network.grounds))
