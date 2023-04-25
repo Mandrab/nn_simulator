@@ -1,3 +1,5 @@
+import numpy as np
+
 from nn_simulator.model.device.network import Network
 from nn_simulator.model.utils import stack
 
