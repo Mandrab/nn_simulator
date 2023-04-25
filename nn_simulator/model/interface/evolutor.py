@@ -65,7 +65,7 @@ def minimum_distance_selection(
                 return mask
 
             # set the nodes neighbor as unavailable
-            mask |= np.sum(network.adjacency[mask], axis=0, dtype=bool)
+            mask |= np.sum(network.device.adjacency[mask], axis=0, dtype=bool)
 
             # recur until found all neighbours
             return neighbours(mask, decreased_distance - 1)
