@@ -113,7 +113,7 @@ def copy(network: Network) -> Network:
     xw, yw = network.wires_position
     xj, yj = network.junctions_position
 
-    adj = network.adjacency if ram else network.adjacency.copy()
+    adj = network.adjacency
     wp = (xw.copy(), yw.copy())
     jp = (xj.copy(), yj.copy())
     circuit = network.circuit.copy()
