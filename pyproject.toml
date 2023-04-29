@@ -1,8 +1,8 @@
 [project]
 name 		= 'nn_simulator'
-version 	= '2.0.1'
+version 	= '2.0.0'
 authors		= [
-    { name = 'Paolo Baldini', email	= 'paolobaldini01@gmail.com' }
+    { name = 'Paolo Baldini', email    = 'paolo.baldini.phd@gmail.com' }
 ]
 description	= 'Simulator for a nanowire-network with memristive behaviour'
 classifiers	= [
