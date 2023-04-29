@@ -1,6 +1,6 @@
 [project]
 name 		= 'nn_simulator'
-version 	= '2.1.0'
+version 	= '2.0.0'
 authors		= [
     { name = 'Paolo Baldini', email    = 'paolo.baldini.phd@gmail.com' }
 ]
